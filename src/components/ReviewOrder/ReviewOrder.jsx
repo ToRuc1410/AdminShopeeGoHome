@@ -1,106 +1,96 @@
-import React, { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { formatNumber } from '../../pages/Utils/utils'
-import { useNavigate } from 'react-router-dom'
+import React from 'react'
+import OrderDetailAPI from '../../apis/orderDetail.api'
+import { useState } from 'react'
+import { useEffect } from 'react'
+import { renderHoursAndDate } from '../../pages/Utils/renderStatusCode'
 import { produce } from 'immer'
 import { toast } from 'react-toastify'
-import UserAPI from '../../apis/user.api'
 
-// getAllUsers
-export default function Users() {
-  const navigate = useNavigate()
-
-  const [dataListUser, setDataListUser] = useState([])
-  const [searchResults, setSearchResults] = useState([])
-
-  const [name, setName] = useState('')
-
-  const { data: getAllUsers, refetch } = useQuery({
-    queryKey: ['getAllUsers'],
-    queryFn: UserAPI.getAllUsers
+export default function ReviewOrder() {
+  const { data: getAllReviewOrder, refetch } = useQuery({
+    queryKey: ['getAllReviewOrder'],
+    queryFn: OrderDetailAPI.getAllReviewOrder
   })
 
-  const resgetAllUsersData = getAllUsers?.data.data
-
-  const deleteUsersMutation = useMutation({
-    mutationFn: UserAPI.deleteUsers,
+  const deleteReviewOrdersMutation = useMutation({
+    mutationFn: OrderDetailAPI.deleteReviewOrder,
     onSuccess: () => {
       refetch()
     }
   })
 
+  console.log(getAllReviewOrder)
+  // render data xóa hoặc lấy ds
+  const [dataListReviewOrder, setDataListReviewOrder] = useState([])
+  // dùng để render data for search
+  const [searchResults, setSearchResults] = useState([])
+
+  const [name, setName] = useState('')
+
+  const resGetAllReviewOrder = getAllReviewOrder?.data.data
   useEffect(() => {
-    resgetAllUsersData &&
-      setDataListUser(
-        resgetAllUsersData.map((item) => {
+    resGetAllReviewOrder &&
+      setDataListReviewOrder(
+        resGetAllReviewOrder.map((item) => {
           return {
             ...item,
             checked: false
           }
         })
       )
-  }, [resgetAllUsersData])
+  }, [resGetAllReviewOrder])
 
   useEffect(() => {
-    resgetAllUsersData && setSearchResults(resgetAllUsersData)
-  }, [resgetAllUsersData])
-
-  const hanldeOpenDetailUser = (id) => {
-    navigate('/system/detailUser', {
-      state: {
-        detailUser: id
-      }
-    })
-  }
+    resGetAllReviewOrder && setSearchResults(resGetAllReviewOrder)
+  }, [resGetAllReviewOrder])
 
   // cơ chế currying
   const handleCheck = (index) => (event) => {
-    setDataListUser(
+    setDataListReviewOrder(
       produce((draft) => {
         draft[index].checked = event.target.checked
       })
     )
   }
-
-  const checkedData = dataListUser.filter((item) => item.checked)
+  const checkedData = dataListReviewOrder.filter((item) => item.checked)
 
   // delete many items
   const handleDeleteChecked = async () => {
     const confirmation = window.confirm('Bạn có chắc xóa không?')
     if (confirmation) {
+      console.log(checkedData)
       const dataManyChecked = checkedData.map((item) => item._id)
-      console.log(dataManyChecked)
-      await deleteUsersMutation.mutateAsync(dataManyChecked, {
+
+      await deleteReviewOrdersMutation.mutateAsync(dataManyChecked, {
         onSuccess: (data) => toast.success(data.data.message)
       })
     }
   }
+
   const hanldeSearchCode = (e) => {
     const keyword = e.target.value
 
     if (keyword !== '') {
-      const results = dataListUser.filter((user) => {
-        return user.customerName.toLowerCase().startsWith(keyword.toLowerCase())
+      const results = dataListReviewOrder.filter((review) => {
+        return review.order.nameUser.toLowerCase().startsWith(keyword.toLowerCase())
         // Use the toLowerCase() method to make it case-insensitive
       })
       setSearchResults(results)
     } else {
-      setSearchResults(dataListUser)
+      setSearchResults(dataListReviewOrder)
       // If the text field is empty, show all users
     }
 
     setName(keyword)
   }
-
-  console.log(name)
   return (
     <div className='px-2'>
       <div className='flex justify-between'>
         <div className='mt-3'>
-          <h2 className='text-left pt-4 font-sans text-gray-600'>Quản Lý Người Dùng</h2>
+          <h2 className='text-left pt-4 font-sans text-gray-600'>Quản Lý Đánh Giá Sản Phẩm</h2>
           <div className='h-[2px] w-10px bg-white'></div>
         </div>
-
         <button className='flex text-xs bg-red-500 rounded-lg py-4 px-2 my-2' onClick={handleDeleteChecked}>
           <svg
             xmlns='http://www.w3.org/2000/svg'
@@ -119,12 +109,12 @@ export default function Users() {
           <span>Xóa mục chọn</span>
         </button>
       </div>
-
       <div className='py-4'>
-        <div className='relative overflow-x-auto shadow-md sm:rounded-lg'>
+        <div className='relative overflow-x-auto h-96  overflow-y-auto shadow-md sm:rounded-lg'>
           <div className='flex items-center justify-around py-4 bg-white dark:bg-gray-800 border-b border-slate-500'>
             <span className='flex'>
-              <p> Danh Sách Khách Hàng: </p> <p className='text-red-500'> {searchResults && searchResults.length}</p>
+              <p className='mr-2'>Đánh giá sản phẩm: </p>
+              <p className='text-red-500 font-semibold'> {searchResults && searchResults.length} </p>
             </span>
 
             <div className='relative mr-5'>
@@ -133,7 +123,7 @@ export default function Users() {
                   type='search'
                   id='table-search-users'
                   className='outline-none block p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500'
-                  placeholder='Tìm Kiếm Khác Hàng'
+                  placeholder='Tìm Kiếm Theo Tên Sản Phẩm'
                   value={name}
                   onChange={hanldeSearchCode}
                 />
@@ -156,22 +146,22 @@ export default function Users() {
                   </div>
                 </th>
                 <th scope='col' className='px-6 py-3'>
-                  Khách Hàng
+                  Tên Khách Hàng
                 </th>
                 <th scope='col' className='px-6 py-3'>
-                  Địa Điểm
+                  Xếp Hạng
                 </th>
                 <th scope='col' className='px-6 py-3'>
-                  Tổng Đơn Hàng
+                  Đánh Giá
                 </th>
                 <th scope='col' className='px-6 py-3'>
-                  Đơn Hàng Gần Nhất
+                  Đơn Hàng
                 </th>
                 <th scope='col' className='px-6 py-3'>
-                  Tổng
+                  Ảnh Đơn Hàng
                 </th>
                 <th scope='col' className='px-4 py-3'>
-                  Thông Tin
+                  Ngày Đánh Giá
                 </th>
               </tr>
             </thead>
@@ -197,19 +187,42 @@ export default function Users() {
                       </div>
                     </td>
 
-                    <td className='px-6 py-4'>{item.customerName}</td>
-                    <td className='px-6 py-4'>{item.address}</td>
-                    <td className='px-6 py-4'>{item.totalOrders}</td>
-                    <td className='px-6 py-4'>{item.latestOrder ? item.latestOrder : '_'}</td>
-                    <td className='px-6 py-4'>{` ₫${formatNumber(item.totalValue)}`}</td>
-                    <td className=''>
-                      <button
-                        className='bg-blue-500 py-2 px-3 text-xs text-slate-100 rounded-sm hover:bg-orange-400'
-                        onClick={() => hanldeOpenDetailUser(item._id)}
+                    <td className='px-6 py-4'>{item.order?.nameUser}</td>
+                    <td className='px-6 py-8 flex'>
+                      <span>{item.rating}</span>
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        strokeWidth={1.5}
+                        stroke='currentColor'
+                        className='w-5 h-5 text-yellow-500'
                       >
-                        Xem Chi Tiết
-                      </button>
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          d='M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z'
+                        />
+                      </svg>
                     </td>
+                    <td className='px-6 py-4'>
+                      <span className='font-semibold'>Chất liệu: </span>
+                      <span>{item.material ? item.material : '_'}</span>
+                      <br />
+                      <span className='font-semibold'>Mô Tả: </span>
+                      <span>{item.description ? item.description : '_'}</span>
+                      <br />
+                      <span className='font-semibold'>Chi Tiết: </span>
+                      <span>{item.message ? item.message : '_'}</span>
+                    </td>
+                    <td className='px-6 py-4'>{item.order.orderCode}</td>
+                    {/* <td className='px-6 py-4'>{` ₫${formatNumber(item.totalValue)}`}</td> */}
+                    <td className=''>
+                      {item.order.detailPurchase.map((product) => (
+                        <img src={product.product.image} alt={product.product.name} className='h-10 w-10' />
+                      ))}
+                    </td>
+                    <td className='px-6 py-4'>{renderHoursAndDate(item.commentAt)}</td>
                   </tr>
                 ))
               ) : (

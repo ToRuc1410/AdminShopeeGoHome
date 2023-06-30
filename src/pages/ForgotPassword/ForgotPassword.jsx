@@ -35,7 +35,7 @@ export default function ForgotPassword() {
               alt='GoMoHo'
             />
             <h2 className='mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-700 font-body ml-10'>
-              Bạn quên mật khẩu
+              Quên mật khẩu
             </h2>
           </div>
 

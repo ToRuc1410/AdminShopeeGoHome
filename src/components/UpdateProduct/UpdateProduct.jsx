@@ -41,7 +41,7 @@ export default function UpdateProduct() {
   const { idProduct } = useParams()
 
   //==========================Api: getDetailProduct
-  const { data: ProductData } = useQuery({
+  const { data: ProductData, refetch } = useQuery({
     queryKey: ['getProduct', idProduct],
     queryFn: () => {
       return ProductAPI.getDetailProduct(idProduct)
@@ -144,6 +144,7 @@ export default function UpdateProduct() {
     console.log(formData)
     const resUpdateProductMutation = await updateProductMutation.mutateAsync(formData)
     if (resUpdateProductMutation) {
+      refetch()
       toast.success(resUpdateProductMutation.data?.message, {
         position: 'top-center',
         autoClose: 1000

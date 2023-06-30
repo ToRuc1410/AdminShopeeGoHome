@@ -113,7 +113,6 @@ export default function CreateProduct() {
       weight,
       width
     } = stateProducts
-    console.log(stateProducts)
     const formData = new FormData()
     formData.append('name', name)
     formData.append('quantity', quantity)

@@ -7,6 +7,8 @@ import {
   setProfileUserFromLS,
   setRefreshTokenTokenToLS
 } from './auth'
+import { isAxiosUnauthorizedError } from './UtilErrForm'
+import { URL_REFRESH_TOKEN } from '../../apis/auth.api'
 
 class Http {
   constructor() {
@@ -59,39 +61,64 @@ class Http {
           const message = data?.message || 'Máy chủ đang quá tải vui lòng thử lại sau'
           console.log(message)
         }
-        // if ([401].includes(error.response?.status)) {
-        //   const config = error.response?.config || { headers: {} }
-        //   const { url } = config
-        //   //Trường hợp: - lỗi do Token hết hạn và request đó k phải là request refesh token
-        //   // thì ta mới tiên hành gọi refesh token
-        //   if (isAxiosExpiredTokenError(error) && url !== URL_REFRESH_TOKEN) {
-        //     // thì chúng ta sẽ tiến hành gọi lại refesh token
-        //     // Hạn chế gọi 2 lần handleRefreshToken
-        //     this.refreshTokenRequest = this.refreshTokenRequest
-        //       ? this.refreshTokenRequest
-        //       : this.handleRefeshToken().finally(() => {
-        //           // Giữ refreshTokenRequest trong 10s cho những request tiếp theo nếu có 401 thì dùng
-        //           setTimeout(() => {
-        //             this.refreshTokenRequest = null
-        //           }, 5000)
-        //         })
-        //     return this.refreshTokenRequest.then((accessToken) => {
-        //       // chỗ này nghĩa là chúng ta gọi lại request cũ vừa bị lỗi
-        //       return this.instance({ ...config, headers: { ...config.headers, Authorization: accessToken } })
-        //     })
-        //   }
-        //   // - lỗi do Token không đúng
-        //   // - lỗi do không truyền Token,
-        //   // - lỗi truyền Token nhưng bị failer
-        //   clearLS()
-        //   this.accessToken = ''
-        //   this.refreshToken = ''
-        //   toast.error(error.response?.data.data?.message || error.response?.data.message)
-        // }
-        // Bất kì mã trạng thái nào lọt ra ngoài tầm 2xx đều khiến hàm này được trigger\
-        // Làm gì đó với lỗi response
+        // nếu là lỗi 401 Unauthorized
+        if (isAxiosUnauthorizedError(error)) {
+          console.log(error)
+
+          const config = error.response?.config || { headers: {} }
+          const { url } = config
+          //Trường hợp: - lỗi do Token hết hạn và request đó k phải là request refesh token
+          // thì ta mới tiên hành gọi refesh token
+          if (url !== URL_REFRESH_TOKEN) {
+            // thì chúng ta sẽ tiến hành gọi lại refesh token
+            // Hạn chế gọi 2 lần handleRefreshToken
+            this.refreshTokenRequest = this.refreshTokenRequest
+              ? this.refreshTokenRequest
+              : this.handleRefeshToken().finally(() => {
+                  // Giữ refreshTokenRequest trong 10s cho những request tiếp theo nếu có 401 thì dùng
+                  setTimeout(() => {
+                    this.refreshTokenRequest = null
+                  }, 5000)
+                })
+            return this.refreshTokenRequest.then((accessToken) => {
+              // chỗ này nghĩa là chúng ta gọi lại request cũ vừa bị lỗi
+              return this.instance({ ...config, headers: { ...config.headers, Authorization: accessToken } })
+            })
+          }
+          // - lỗi do Token không đúng
+          // - lỗi do không truyền Token,
+          // - lỗi truyền Token nhưng bị failer
+          clearLS()
+          this.accessToken = ''
+          this.refreshToken = ''
+          toast.error(error.response?.data.data?.message || error.response?.data.message)
+        }
         return Promise.reject(error)
       }
+    )
+  }
+  handleRefeshToken() {
+    return (
+      this.instance
+        .post(URL_REFRESH_TOKEN, {
+          refresh_token: this.refreshToken
+        })
+        // refresh_token thành công
+        .then((res) => {
+          console.log(res)
+          const { access_token } = res.data.data
+          setAccessTokenToLS(access_token)
+          this.accessToken = access_token
+          return access_token
+        })
+        // refresh_token thất bại thì cho nó logout và ném lỗi ra
+        .catch((error) => {
+          console.log(error)
+          clearLS()
+          this.accessToken = ''
+          this.refreshToken = ''
+          throw error
+        })
     )
   }
 }

@@ -17,3 +17,7 @@ export const renderDate = (date) => {
   const momentDay = moment(date)
   return momentDay.format('DD/MM/YYYY')
 }
+export const renderHoursAndDate = (date) => {
+  const momentHoursAndDate = moment(date)
+  return momentHoursAndDate.format('HH:mm DD/MM/YYYY')
+}

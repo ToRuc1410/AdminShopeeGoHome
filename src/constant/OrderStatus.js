@@ -1,11 +1,17 @@
 export const orderStatus = {
   0: 'Tất cả Sản Phẩm',
   1: 'đợi xác nhận',
-  2: 'đang được lấy hàng',
+  2: 'đang lấy hàng',
   3: 'đang vận chuyển',
   4: 'đã được giao',
   5: 'đã bị hủy'
 }
+
+export const payMent = {
+  0: 'Chưa Thanh Toán',
+  1: 'Đã Thanh Toán'
+}
+
 export const colorStatus = {
   0: 'text-gray-500',
   1: 'text-black font-bold',

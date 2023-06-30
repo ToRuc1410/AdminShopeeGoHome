@@ -11,6 +11,16 @@ const authAPI = {
       })
     }
   },
+  async resetPassword(body) {
+    try {
+      return await http.post('reset-password', body)
+    } catch (error) {
+      toast.error(error.response?.data?.message, {
+        position: 'top-center',
+        autoClose: 3000
+      })
+    }
+  },
   async loginAdmin(body) {
     try {
       return await http.post('login', body)
@@ -32,5 +42,7 @@ const authAPI = {
     }
   }
 }
+
+export const URL_REFRESH_TOKEN = 'refresh-access-token'
 
 export default authAPI

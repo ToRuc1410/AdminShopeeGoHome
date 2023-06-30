@@ -40,19 +40,17 @@ export const calculatePrice = (products) => {
   })
   return total
 }
-// export const totalPriceOnChecked = ()=>
-//  checkedPurchase.reduce((result, current) => {
-//   return (
-//     result +
-//     (current.product.price !== 0 ? current.product.price : current.product.price_before_discount) * current.buy_count
-//   )
-// }, 0)
-// const formatter = (value) => {
-//   // Thêm dấu phẩy vào giữa hàng nghìn
-//   return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-// }
-
-// const parser = (value) => {
-//   // Xóa dấu phẩy khi người dùng nhập giá trị
-//   return value.replace(/,/g, '')
-// }
+export const hanldeTime = (time) => {
+  const minutes = Math.floor(time / (1000 * 60))
+  // Chuyển đổi sang giờ nếu không đủ phút
+  if (minutes < 60) {
+    return `${minutes} phút trước`
+  } // Chuyển đổi sang giờ
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) {
+    return `${hours} giờ trước`
+  }
+  // Chuyển đổi sang ngày/tháng/năm
+  const days = Math.floor(hours / 24)
+  return `${days} ngày trước`
+}

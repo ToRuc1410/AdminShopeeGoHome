@@ -5,7 +5,6 @@ import NotFound404 from './pages/NotFound404/NotFound404'
 import OrderStatus from './components/OrderStatus/OrderStatus.jsx'
 import Products from './components/Products/Products.jsx'
 import Users from './components/Users/Users.jsx'
-import Empoyee from './components/Employee/Employee.jsx'
 import CreateProduct from './components/CreateProducts/CreateProduct.jsx'
 import Category from './components/Category/Category.jsx'
 import UpdateProduct from './components/UpdateProduct/UpdateProduct.jsx'
@@ -13,6 +12,9 @@ import ForgotPassword from './pages/ForgotPassword/ForgotPassword.jsx'
 import { useContext } from 'react'
 import { AppContext } from './contexts/app.context.jsx'
 import DetailOrderStatus from './components/DetailOrderStatus/DetailOrderStatus.jsx'
+import ResetPassword from './pages/ResetPassword/ResetPassword.jsx'
+import DetailUser from './components/DetailUser/DetailUser.jsx'
+import ReviewOrder from './components/ReviewOrder/ReviewOrder.jsx'
 
 // ------kiểm tra login nếu login đúng thì cho vào k thì đá sang /system/login
 function ProtectedRouter() {
@@ -55,8 +57,8 @@ export default function useRouterElement() {
               element: <Users />
             },
             {
-              path: '/system/employees',
-              element: <Empoyee />
+              path: '/system/reviewOrder',
+              element: <ReviewOrder />
             },
             {
               path: '/system/products/product/:idCategory',
@@ -69,6 +71,10 @@ export default function useRouterElement() {
             {
               path: '/system/detailOrderStatus',
               element: <DetailOrderStatus />
+            },
+            {
+              path: '/system/detailUser',
+              element: <DetailUser />
             }
           ]
         }
@@ -85,6 +91,10 @@ export default function useRouterElement() {
         {
           path: '/system/forgotpassword',
           element: <ForgotPassword />
+        },
+        {
+          path: '/system/reset-password/:resetPassword',
+          element: <ResetPassword />
         }
       ]
     },

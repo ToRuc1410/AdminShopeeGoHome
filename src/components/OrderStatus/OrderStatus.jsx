@@ -1,25 +1,56 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import OrderDetailAPI from '../../apis/orderDetail.api'
-import { useQuery } from '@tanstack/react-query'
+import { Popover } from 'antd'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   renderBgColorStatusCode,
   renderColorStatusCode,
   renderDate,
   renderStatusCode
 } from '../../pages/Utils/renderStatusCode'
-import { calculatePrice, formatNumber } from '../../pages/Utils/utils'
-import { useNavigate } from 'react-router-dom'
+import { formatNumber } from '../../pages/Utils/utils'
+import { createSearchParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { produce } from 'immer'
+import { toast } from 'react-toastify'
+import { orderStatus, payMent } from '../../constant/OrderStatus'
+import useQueryConfig from '../../hook/useQueryConfig'
 
 export default function OrderStatus() {
   // getAllOrder Detail
+  const navigate = useNavigate()
+  const queryConfig = useQueryConfig()
+  const [dataListOrder, setDataListOrder] = useState([])
+  const [isShowStatus, setIsShowStatus] = useState(false)
+  const [isShowPayment, setIsShowPayment] = useState(false)
+  const [name, setName] = useState('')
+
   const { data: getAllDetailData, refetch } = useQuery({
-    queryKey: ['getAllDetail'],
-    queryFn: OrderDetailAPI.getAllDetail
+    queryKey: ['getAllDetail', queryConfig],
+    queryFn: () => {
+      return OrderDetailAPI.getAllDetail(queryConfig)
+    }
+  })
+  const deleteOrdersMutation = useMutation({
+    mutationFn: OrderDetailAPI.deleteOrders,
+    onSuccess: () => {
+      refetch()
+    }
   })
 
   const resgetAllDetailData = getAllDetailData?.data.data
-  console.log(resgetAllDetailData)
-  const navigate = useNavigate()
+
+  useEffect(() => {
+    resgetAllDetailData &&
+      setDataListOrder(
+        resgetAllDetailData.map((item) => {
+          return {
+            ...item,
+            checked: false
+          }
+        })
+      )
+  }, [resgetAllDetailData])
+
   const hanldeOpenDetail = (id) => {
     navigate('/system/detailOrderStatus', {
       state: {
@@ -28,6 +59,56 @@ export default function OrderStatus() {
     })
   }
 
+  // cơ chế currying
+  const handleCheck = (index) => (event) => {
+    setDataListOrder(
+      produce((draft) => {
+        draft[index].checked = event.target.checked
+      })
+    )
+  }
+  const checkedData = dataListOrder.filter((item) => item.checked)
+
+  // delete many items
+  const handleDeleteChecked = async () => {
+    const confirmation = window.confirm('Bạn có chắc xóa Đơn hàng không?')
+    if (confirmation) {
+      const dataManyChecked = checkedData.map((item) => item._id)
+      await deleteOrdersMutation.mutateAsync(dataManyChecked, {
+        onSuccess: (data) => toast.success(data.data.message)
+      })
+    }
+  }
+  const handleGetStatus = (key) => {
+    navigate({
+      pathname: '/system/orders',
+      search: createSearchParams({
+        status: key
+      }).toString()
+    })
+    setIsShowStatus(false)
+  }
+  const handleGetStatusPayment = (key) => {
+    navigate({
+      pathname: '/system/orders',
+      search: createSearchParams({
+        payMent: key
+      }).toString()
+    })
+    setIsShowPayment(false)
+  }
+  const handleSearch = (event) => {
+    navigate({
+      pathname: '/system/orders',
+      search: createSearchParams({
+        code: name
+      }).toString()
+    })
+    event.preventDefault()
+  }
+  const hanldeSearchCode = (e) => {
+    setName(e.target.value.trim())
+  }
   return (
     <div className='px-2'>
       <div className='flex justify-between'>
@@ -36,7 +117,7 @@ export default function OrderStatus() {
           <div className='h-[2px] w-10px bg-white'></div>
         </div>
 
-        <button className='flex text-xs bg-red-500 rounded-lg py-4 px-2 my-2'>
+        <button className='flex text-xs bg-red-500 rounded-lg py-4 px-2 my-2' onClick={handleDeleteChecked}>
           <svg
             xmlns='http://www.w3.org/2000/svg'
             fill='none'
@@ -56,37 +137,46 @@ export default function OrderStatus() {
       </div>
 
       <div className='py-4'>
-        <div className='relative overflow-x-auto shadow-md sm:rounded-lg'>
-          <div className='flex items-center justify-end py-4 bg-white dark:bg-gray-800 border-b border-slate-500'>
-            <label htmlFor='table-search' className='sr-only'>
-              Search
-            </label>
+        <div className='relative overflow-x-auto h-96 overflow-y-auto shadow-md sm:rounded-lg'>
+          <div className='flex items-center justify-around py-4 bg-white dark:bg-gray-800 border-b border-slate-500'>
+            <span className='flex'>
+              <p> Tổng Số Đơn Hàng: </p> <p className='text-red-500'> {dataListOrder && dataListOrder.length}</p>
+            </span>
+
             <div className='relative mr-5'>
-              <div className='absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none'>
-                <svg
-                  className='w-5 h-5 text-gray-500 dark:text-gray-400'
-                  aria-hidden='true'
-                  fill='currentColor'
-                  viewBox='0 0 20 20'
-                  xmlns='http://www.w3.org/2000/svg'
-                >
-                  <path
-                    fillRule='evenodd'
-                    d='M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z'
-                    clipRule='evenodd'
+              <form onSubmit={handleSearch}>
+                <div className='flex'>
+                  <input
+                    type='text'
+                    value={name}
+                    id='table-search-users'
+                    className='outline-none block p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-tl-lg rounded-bl-lg  w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500'
+                    placeholder='Lọc Đơn Hàng'
+                    name='code'
+                    onChange={hanldeSearchCode}
                   />
-                </svg>
-              </div>
-              <input
-                type='text'
-                id='table-search-users'
-                className='block p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500'
-                placeholder='Lọc Đơn Hàng'
-              />
+                  <button className='bg-blue-500 py-2 px-5 rounded-tr-lg rounded-br-lg' type='submit'>
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      strokeWidth={1.5}
+                      stroke='currentColor'
+                      className='w-4 h-4'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        d='M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z'
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
           <table className='w-full text-sm text-left text-gray-500 dark:text-gray-400 p-5'>
-            <thead className='text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400'>
+            <thead className='text-xs  text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400'>
               <tr>
                 <th scope='col' className='p-4'>
                   <div className='flex items-center'>
@@ -107,10 +197,66 @@ export default function OrderStatus() {
                   Khách Hàng
                 </th>
                 <th scope='col' className='px-6 py-3'>
-                  Trạng Thái
+                  <div className='flex items-center'>
+                    <span>Trạng Thái: </span>
+                    <Popover
+                      content={
+                        <ol className='capitalize'>
+                          {Object.entries(orderStatus).map(([key, value]) => (
+                            <li
+                              className='hover:bg-slate-400 hover:text-white cursor-pointer px-3 py-2'
+                              key={key}
+                              value={key}
+                              onClick={() => handleGetStatus(key)}
+                              name='status'
+                            >
+                              {value}
+                            </li>
+                          ))}
+                        </ol>
+                      }
+                      title='Chọn Trạng Thái'
+                      trigger='click'
+                      open={isShowStatus}
+                      onOpenChange={() => setIsShowStatus(!isShowStatus)}
+                    >
+                      <button className='text-blue-500 bg-slate-100 py-1 px-3 rounded-sm '>
+                        <svg className='fill-current h-4 w-4' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'>
+                          <path d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z' />
+                        </svg>
+                      </button>
+                    </Popover>
+                  </div>
                 </th>
                 <th scope='col' className='px-6 py-3'>
-                  Thanh Toán
+                  <span>Thanh Toán</span>
+                  <Popover
+                    content={
+                      <ol className='capitalize'>
+                        {Object.entries(payMent).map(([key, value]) => (
+                          <li
+                            className='hover:bg-slate-400 hover:text-white cursor-pointer px-3 py-2'
+                            key={key}
+                            value={key}
+                            onClick={() => handleGetStatusPayment(key)}
+                            name='payment'
+                          >
+                            {value}
+                          </li>
+                        ))}
+                      </ol>
+                    }
+                    title='Chọn Thanh Toán'
+                    trigger='click'
+                    open={isShowPayment}
+                    onOpenChange={() => setIsShowPayment(!isShowPayment)}
+                  >
+                    <button className='text-blue-500 bg-slate-100 py-1 px-3 rounded-sm '>
+                      <svg className='fill-current h-4 w-4' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'>
+                        <path d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z' />
+                      </svg>
+                    </button>
+                  </Popover>
                 </th>
                 <th scope='col' className='px-6 py-3'>
                   Ngày Đặt
@@ -124,8 +270,8 @@ export default function OrderStatus() {
               </tr>
             </thead>
             <tbody>
-              {resgetAllDetailData &&
-                resgetAllDetailData.map((item) => (
+              {dataListOrder &&
+                dataListOrder.map((item, index) => (
                   <tr
                     className='bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 hover:cursor-pointer'
                     key={item._id}
@@ -135,6 +281,8 @@ export default function OrderStatus() {
                         <input
                           id='checkbox-table-search-1'
                           type='checkbox'
+                          checked={item.checked}
+                          onChange={handleCheck(index)}
                           className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
                         />
                         <label htmlFor='checkbox-table-search-1' className='sr-only'>
@@ -182,7 +330,7 @@ export default function OrderStatus() {
                     <td className='px-6 py-4'>
                       <span>{renderDate(item.orderDate)}</span>
                     </td>
-                    <td className='px-6 py-4'>{` ₫${formatNumber(calculatePrice(item.detailPurchase))}`}</td>
+                    <td className='px-6 py-4'>{` ₫${formatNumber(item.total_price)}`}</td>
                     <td className=''>
                       <button
                         className='bg-blue-500 py-2 px-3 text-xs text-slate-100 rounded-sm hover:bg-orange-400'
@@ -195,97 +343,6 @@ export default function OrderStatus() {
                 ))}
             </tbody>
           </table>
-          {/* <nav className='flex items-center justify-between pt-4' aria-label='Table navigation'>
-            <span className='text-sm font-normal text-gray-500 dark:text-gray-400'>
-              Showing <span className='font-semibold text-gray-900 dark:text-white'>1-10</span>
-              <span className='font-semibold text-gray-900 dark:text-white'>1000</span>
-            </span>
-            <ul className='inline-flex items-center -space-x-px'>
-              <li>
-                <a
-                  href='#'
-                  className='block px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
-                >
-                  <span className='sr-only'>Previous</span>
-                  <svg
-                    className='w-5 h-5'
-                    aria-hidden='true'
-                    fill='currentColor'
-                    viewBox='0 0 20 20'
-                    xmlns='http://www.w3.org/2000/svg'
-                  >
-                    <path
-                      fillRule='evenodd'
-                      d='M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z'
-                      clipRule='evenodd'
-                    />
-                  </svg>
-                </a>
-              </li>
-              <li>
-                <a
-                  href='#'
-                  className='px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
-                >
-                  1
-                </a>
-              </li>
-              <li>
-                <a
-                  href='#'
-                  className='px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
-                >
-                  2
-                </a>
-              </li>
-              <li>
-                <a
-                  href='#'
-                  aria-current='page'
-                  className='z-10 px-3 py-2 leading-tight text-blue-600 border border-blue-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white'
-                >
-                  3
-                </a>
-              </li>
-              <li>
-                <a
-                  href='#'
-                  className='px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
-                >
-                  ...
-                </a>
-              </li>
-              <li>
-                <a
-                  href='#'
-                  className='px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
-                >
-                  100
-                </a>
-              </li>
-              <li>
-                <a
-                  href='#'
-                  className='block px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
-                >
-                  <span className='sr-only'>Next</span>
-                  <svg
-                    className='w-5 h-5'
-                    aria-hidden='true'
-                    fill='currentColor'
-                    viewBox='0 0 20 20'
-                    xmlns='http://www.w3.org/2000/svg'
-                  >
-                    <path
-                      fillRule='evenodd'
-                      d='M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z'
-                      clipRule='evenodd'
-                    />
-                  </svg>
-                </a>
-              </li>
-            </ul>
-          </nav> */}
         </div>
       </div>
     </div>
