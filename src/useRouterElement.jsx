@@ -15,6 +15,7 @@ import DetailOrderStatus from './components/DetailOrderStatus/DetailOrderStatus.
 import ResetPassword from './pages/ResetPassword/ResetPassword.jsx'
 import DetailUser from './components/DetailUser/DetailUser.jsx'
 import ReviewOrder from './components/ReviewOrder/ReviewOrder.jsx'
+import SlideShow from './components/SlideShow/SlideShow.jsx'
 
 // ------kiểm tra login nếu login đúng thì cho vào k thì đá sang /system/login
 function ProtectedRouter() {
@@ -75,6 +76,10 @@ export default function useRouterElement() {
             {
               path: '/system/detailUser',
               element: <DetailUser />
+            },
+            {
+              path: '/system/slidesShow',
+              element: <SlideShow />
             }
           ]
         }

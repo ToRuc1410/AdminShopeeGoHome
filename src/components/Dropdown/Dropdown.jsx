@@ -29,7 +29,7 @@ export default function Dropdown() {
   return (
     <Menu as='div' className='relative inline-block text-left'>
       <div>
-        <Menu.Button className='bg-gray-700 inline-flex w-full justify-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-700/70'>
+        <Menu.Button className='bg-gray-700 inline-flex w-full justify-center shadow-lg gap-x-1.5 px-4 py-2 text-sm font-semibold text-white rounded-md hover:bg-gray-700/70'>
           Xin Chào: {profile.roles[0]}
           <ChevronDownIcon className='-mr-1 h-5 w-5 text-gray-400' aria-hidden='true' />
         </Menu.Button>

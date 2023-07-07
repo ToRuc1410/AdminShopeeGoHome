@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { formatNumber } from '../../pages/Utils/utils'
 
 export default function RenderProduct({ idCategory, name, products }) {
-  const [isToggle, setIsToggle] = useState(true)
+  const [isToggle, setIsToggle] = useState(false)
   const queryClient = useQueryClient()
   const deleteProductMutation = useMutation({
     mutationFn: ProductAPI.deleteProduct,

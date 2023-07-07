@@ -66,13 +66,15 @@ export default function Users() {
 
   // delete many items
   const handleDeleteChecked = async () => {
-    const confirmation = window.confirm('Bạn có chắc xóa không?')
-    if (confirmation) {
-      const dataManyChecked = checkedData.map((item) => item._id)
-      console.log(dataManyChecked)
-      await deleteUsersMutation.mutateAsync(dataManyChecked, {
-        onSuccess: (data) => toast.success(data.data.message)
-      })
+    if (checkedData.length > 0) {
+      const confirmation = window.confirm('Bạn có chắc xóa không?')
+      if (confirmation) {
+        const dataManyChecked = checkedData.map((item) => item._id)
+        console.log(dataManyChecked)
+        await deleteUsersMutation.mutateAsync(dataManyChecked, {
+          onSuccess: (data) => toast.success(data.data.message)
+        })
+      }
     }
   }
   const hanldeSearchCode = (e) => {
@@ -214,7 +216,7 @@ export default function Users() {
                 ))
               ) : (
                 <tr>
-                  <td>Không Tìm Thấy</td>
+                  <td>Không Có</td>
                 </tr>
               )}
             </tbody>

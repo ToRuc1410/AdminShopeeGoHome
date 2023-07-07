@@ -78,7 +78,7 @@ class Http {
                   // Giữ refreshTokenRequest trong 10s cho những request tiếp theo nếu có 401 thì dùng
                   setTimeout(() => {
                     this.refreshTokenRequest = null
-                  }, 5000)
+                  }, 10000)
                 })
             return this.refreshTokenRequest.then((accessToken) => {
               // chỗ này nghĩa là chúng ta gọi lại request cũ vừa bị lỗi

@@ -51,6 +51,7 @@ export default function Category() {
   }
   const handleCreate = async () => {
     const resCreateCategoryMutation = await createCategoryMutation.mutateAsync({ name: name })
+    console.log(resCreateCategoryMutation)
     toast.success(resCreateCategoryMutation?.data.message, {
       position: 'top-center',
       autoClose: 1000
@@ -62,7 +63,7 @@ export default function Category() {
   const showModal = () => {
     setOpenCreate(!openCreate)
   }
-  const showModalForUpdate = (idCategory, nameCategory) => {
+  const showModalForUpdate = (idCategory, nameCategory) => () => {
     setNameUpdate(nameCategory)
     setIdCategory(idCategory)
     setOpenUpdate(!openUpdate)
@@ -163,7 +164,7 @@ export default function Category() {
 
                     <Button
                       type='default'
-                      onClick={() => showModalForUpdate(item._id, item.name)}
+                      onClick={showModalForUpdate(item._id, item.name)}
                       className='font-medium text-blue-600 dark:text-blue-500 hover:underline cursor-pointer'
                     >
                       Chỉnh Sửa

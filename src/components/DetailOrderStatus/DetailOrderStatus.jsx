@@ -160,7 +160,7 @@ export default function DetailOrderStatus() {
   console.log(detailData)
   return (
     <div className='pb-2'>
-      {detailData && (
+      {detailData ? (
         <>
           <div className='flex justify-between bg-white py-3 px-5'>
             <div className='py-2'>Quản Lý Đơn Hàng</div>
@@ -509,7 +509,12 @@ export default function DetailOrderStatus() {
                         <span className='font-bold py-2'>Tổng giá trị đơn hàng</span>
                       </div>
                       <div className='flex flex-col text-right text-sm px-3'>
-                        <span>{` ₫${formatNumber(calculatePrice(detailData?.detailPurchase))}`}</span>
+                        {detailData.detailPurchase.length > 0 ? (
+                          <span>{` ₫${formatNumber(calculatePrice(detailData.detailPurchase))}`}</span>
+                        ) : (
+                          <span>_</span>
+                        )}
+
                         <span className='py-2'>{`₫${formatNumber(detailData?.priceDelivery)}`}</span>
                         <span>đ0</span>
                         <span className='text-red-500 font-extrabold py-2'>{`₫${formatNumber(
@@ -642,6 +647,8 @@ export default function DetailOrderStatus() {
             </div>
           </div>
         </>
+      ) : (
+        <div className=''>Hiện tại không có đơn hàng nào</div>
       )}
     </div>
   )

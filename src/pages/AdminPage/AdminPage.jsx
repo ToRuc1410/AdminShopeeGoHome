@@ -15,6 +15,34 @@ const AdminPage = () => {
         <Header />
         <div className='grid grid-cols-12 '>
           <div className='col-span-2 bg-grown p-4'>
+            <div className='ml-8 text-left mt-4'>
+              <NavLink
+                to='/system/slidesShow'
+                className={({ isActive }) =>
+                  classNames(
+                    ' text-gray-600 px-3 flex hover:bg-blue-200 hover:text-blue-500 py-2 transition-colors rounded-sm text-sm',
+                    { 'text-blue-500 bg-blue-100': isActive }
+                  )
+                }
+              >
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  strokeWidth={1.5}
+                  stroke='currentColor'
+                  className='w-4 h-4'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    d='M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z'
+                  />
+                </svg>
+
+                <span>Xem Thông Tin </span>
+              </NavLink>
+            </div>
             <div className='ml-8 mt-3 text-left'>
               <NavLink
                 to='/system/orders'
