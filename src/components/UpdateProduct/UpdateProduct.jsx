@@ -5,19 +5,24 @@ import MarkdownIt from 'markdown-it'
 import MdEditor from 'react-markdown-editor-lite'
 // import style manually
 import 'react-markdown-editor-lite/lib/index.css'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import ProductAPI from '../../apis/produts.api'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useForm } from 'antd/es/form/Form'
 import Spinner from '../Spinner/Spinner'
 import { toast } from 'react-toastify'
+import { removeCommas } from '../../pages/Utils/utils'
+import { NumericFormat } from 'react-number-format'
+import io from 'socket.io-client'
+
+const socket = io('http://localhost:4000/')
 
 export default function UpdateProduct() {
   const initStates = () => ({
     name: '',
-    quantity: 0,
+    quantity: '',
     categoryId: '',
-    price: 0,
+    price: '',
     price_before_discount: 0,
     descriptionHTML: '',
     descriptionText: '',
@@ -31,7 +36,7 @@ export default function UpdateProduct() {
     weight: '',
     width: ''
   })
-
+  const navigate = useNavigate()
   const [form] = useForm()
   const mdParser = new MarkdownIt(/* Markdown-it options */)
   const [stateProducts, setStateProducts] = useState(initStates())
@@ -39,7 +44,16 @@ export default function UpdateProduct() {
   const [description, setDescription] = useState('')
   const [imageURLs, setImageURLs] = useState([])
   const { idProduct } = useParams()
-
+  ///====================validate Form
+  const validatePrice = (_, value) => {
+    const priceBeforeDiscount = parseFloat(form.getFieldValue('price_before_discount').replace(/,/g, ''))
+    const salePrice = parseFloat(value.replace(/,/g, ''))
+    if (salePrice >= priceBeforeDiscount) {
+      return Promise.reject(new Error('Giá giảm không thể lớn hơn hoặc bằng giá gốc'))
+    } else {
+      return Promise.resolve()
+    }
+  }
   //==========================Api: getDetailProduct
   const { data: ProductData, refetch } = useQuery({
     queryKey: ['getProduct', idProduct],
@@ -54,9 +68,9 @@ export default function UpdateProduct() {
       setStateProducts((prevState) => ({
         ...prevState,
         name: resProductData.name,
-        quantity: resProductData.quantity,
-        price: resProductData.price,
-        price_before_discount: resProductData.price_before_discount,
+        quantity: resProductData.quantity.toString(),
+        price: resProductData.price.toString(),
+        price_before_discount: resProductData.price_before_discount.toString(),
         descriptionHTML: resProductData.descriptionHTML,
         descriptionText: resProductData.descriptionText,
         detailProductHTML: resProductData.detailProductHTML,
@@ -67,17 +81,10 @@ export default function UpdateProduct() {
         images: resProductData.images,
         height: resProductData.height,
         length: resProductData.length,
-        weight: resProductData.weight,
+        weight: resProductData.weight.toString(),
         width: resProductData.width
       }))
   }, [resProductData])
-
-  const validatePrice = (_, value) => {
-    if (value && form.getFieldValue('price') < value) {
-      return Promise.reject(new Error('Giá giảm không thể lớn hơn giá gốc'))
-    }
-    return Promise.resolve()
-  }
 
   const handleEditorChange = ({ html, text }) => {
     setStateProducts({
@@ -122,18 +129,17 @@ export default function UpdateProduct() {
   // const updateProductMutation = useMutation(ProductAPI.updateProduct)
   const updateProductMutation = useMutation((formData) => ProductAPI.updateProduct(stateProducts.productId, formData))
   const handleOnFinish = async () => {
-    // console.log(stateProducts)
     const formData = new FormData()
     formData.append('name', stateProducts.name)
-    formData.append('quantity', stateProducts.quantity)
-    formData.append('price', stateProducts.price)
+    formData.append('quantity', removeCommas(stateProducts.quantity))
+    formData.append('price', removeCommas(stateProducts.price))
     formData.append('height', stateProducts.height)
     formData.append('length', stateProducts.length)
-    formData.append('weight', stateProducts.weight)
+    formData.append('weight', removeCommas(stateProducts.weight))
     formData.append('width', stateProducts.width)
     formData.append('image', stateProducts.image)
     formData.append('categoryId', stateProducts.categoryId)
-    formData.append('price_before_discount', stateProducts.price_before_discount)
+    formData.append('price_before_discount', removeCommas(stateProducts.price_before_discount))
     formData.append('descriptionHTML', stateProducts.descriptionHTML)
     formData.append('descriptionText', stateProducts.descriptionText)
     formData.append('detailProductHTML', stateProducts.detailProductHTML)
@@ -141,18 +147,14 @@ export default function UpdateProduct() {
     stateProducts.images.forEach((image, index) => {
       stateProducts.images[formData.append(`images[${index}]`, image)]
     })
-    console.log(formData)
     const resUpdateProductMutation = await updateProductMutation.mutateAsync(formData)
     if (resUpdateProductMutation) {
-      refetch()
+      socket.emit('updateProduct')
       toast.success(resUpdateProductMutation.data?.message, {
         position: 'top-center',
         autoClose: 1000
       })
-      // form.resetFields()
-      // setDescription('')
-      // setSelectedImage('')
-      // setImageURLs([])
+      navigate('/system/products')
     } else {
       toast.error(resUpdateProductMutation.data?.message, {
         position: 'top-center',
@@ -207,14 +209,22 @@ export default function UpdateProduct() {
 
                     <Form.Item
                       label='Nhập Số Lượng Sản Phẩm'
-                      initialValue={resProductData.quantity}
+                      initialValue={resProductData.quantity.toString()}
                       name='quantity'
                       rules={[
                         { required: true, message: 'Vui lòng nhập giá trị.' },
-                        { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
+                        { pattern: /^\d+(,\d+)*$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
                       ]}
                     >
-                      <InputComponent value={stateProducts.quantity} onChange={handleInputChange} name='quantity' />
+                      <NumericFormat
+                        placeholder='nhập số lượng sản phẩm'
+                        value={stateProducts.quantity}
+                        onChange={handleInputChange}
+                        name='quantity'
+                        allowLeadingZeros
+                        thousandSeparator=','
+                        className='border border-gray-300 w-full rounded h-8 outline-none px-3'
+                      />
                     </Form.Item>
                   </div>
                 </div>
@@ -224,22 +234,24 @@ export default function UpdateProduct() {
                     <Form.Item
                       label='Nhập Giá Bán '
                       name='price_before_discount'
-                      dependencies={['price']}
                       hasFeedback
-                      initialValue={resProductData.price_before_discount}
+                      initialValue={resProductData.price_before_discount.toString()}
                       rules={[
                         {
                           required: true,
                           message: 'Nhập Giá Sản Phẩm'
                         },
-                        { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
+                        { pattern: /^\d+(,\d+)*$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
                       ]}
                     >
-                      <InputComponent
-                        type='text'
+                      <NumericFormat
+                        placeholder='Nhập giá gốc'
                         value={stateProducts.price_before_discount}
                         onChange={handleInputChange}
                         name='price_before_discount'
+                        allowLeadingZeros
+                        thousandSeparator=','
+                        className='border border-gray-300 w-full rounded h-8 outline-none px-3'
                       />
                     </Form.Item>
                   </div>
@@ -247,15 +259,24 @@ export default function UpdateProduct() {
                     {/* Giá bán */}
                     <Form.Item
                       label='Nhập Giá Sale Sản Phẩm'
-                      initialValue={resProductData.price}
-                      hasFeedback
                       name='price'
+                      dependencies={['price_before_discount']}
+                      hasFeedback
+                      initialValue={resProductData.price.toString()}
                       rules={[
                         { validator: validatePrice },
-                        { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
+                        { pattern: /^\d+(,\d+)*$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
                       ]}
                     >
-                      <InputComponent value={stateProducts.price} onChange={handleInputChange} name='price' />
+                      <NumericFormat
+                        value={stateProducts.price}
+                        placeholder='Nhập giá sale'
+                        onChange={handleInputChange}
+                        name='price'
+                        allowLeadingZeros
+                        thousandSeparator=','
+                        className='border border-gray-300 w-full rounded h-8 outline-none px-3'
+                      />
                     </Form.Item>
                   </div>
                 </div>
@@ -381,15 +402,18 @@ export default function UpdateProduct() {
                             required: true,
                             message: 'Nhập cân nặng Sản Phẩm'
                           },
-                          { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
+                          { pattern: /^\d+(,\d+)*$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
                         ]}
                         hasFeedback
                       >
-                        <InputComponent
+                        <NumericFormat
                           placeholder='gram'
                           value={stateProducts.weight}
                           onChange={handleInputChange}
                           name='weight'
+                          allowLeadingZeros
+                          thousandSeparator=','
+                          className='border border-gray-300 w-full rounded h-8 outline-none px-3'
                         />
                       </Form.Item>
                     </div>

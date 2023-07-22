@@ -81,6 +81,12 @@ class Http {
                   }, 10000)
                 })
             return this.refreshTokenRequest.then((accessToken) => {
+              if (accessToken === undefined) {
+                clearLS()
+                this.accessToken = ''
+                this.refreshToken = ''
+                return
+              }
               // chỗ này nghĩa là chúng ta gọi lại request cũ vừa bị lỗi
               return this.instance({ ...config, headers: { ...config.headers, Authorization: accessToken } })
             })

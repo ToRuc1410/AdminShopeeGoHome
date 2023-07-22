@@ -11,6 +11,11 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { useForm } from 'antd/es/form/Form'
 import Spinner from '../Spinner/Spinner'
+import { NumericFormat } from 'react-number-format'
+import { removeCommas } from '../../pages/Utils/utils'
+import io from 'socket.io-client'
+
+const socket = io('http://localhost:4000/')
 
 export default function CreateProduct() {
   const initStates = () => ({
@@ -41,8 +46,10 @@ export default function CreateProduct() {
   ////// ======================================validate form
 
   const validatePrice = (_, value) => {
-    if (value >= form.getFieldValue('price_before_discount')) {
-      return Promise.reject(new Error('Giá giảm không thể lớn hơn giá gốc'))
+    const priceBeforeDiscount = parseFloat(form.getFieldValue('price_before_discount').replace(/,/g, ''))
+    const salePrice = parseFloat(value.replace(/,/g, ''))
+    if (salePrice >= priceBeforeDiscount) {
+      return Promise.reject(new Error('Giá giảm không thể lớn hơn hoặc bằng giá gốc'))
     } else {
       return Promise.resolve()
     }
@@ -57,14 +64,6 @@ export default function CreateProduct() {
     })
     setDescription(text)
   }
-  // const handleEditorChangeForDetailProduct = ({ html, text }) => {
-  //   setStateProducts({
-  //     ...stateProducts,
-  //     detailProductHTML: html,
-  //     detailProductText: text
-  //   })
-  //   setDetailProduct(text)
-  // }
 
   const handleInputChange = (event) => {
     const { name, value } = event.target
@@ -99,6 +98,7 @@ export default function CreateProduct() {
 
   const createProductMutation = useMutation(ProductAPI.createProduct)
   const handleOnFinish = async () => {
+    console.log(stateProducts)
     const {
       name,
       quantity,
@@ -115,15 +115,15 @@ export default function CreateProduct() {
     } = stateProducts
     const formData = new FormData()
     formData.append('name', name)
-    formData.append('quantity', quantity)
-    formData.append('price', price)
+    formData.append('quantity', removeCommas(quantity))
+    formData.append('price', removeCommas(price))
     formData.append('height', height)
     formData.append('length', length)
-    formData.append('weight', weight)
+    formData.append('weight', removeCommas(weight))
     formData.append('width', width)
     formData.append('image', image)
     formData.append('categoryId', idCategory)
-    formData.append('price_before_discount', price_before_discount)
+    formData.append('price_before_discount', removeCommas(price_before_discount))
     formData.append('descriptionHTML', descriptionHTML)
     formData.append('descriptionText', descriptionText)
     // formData.append('detailProductHTML', detailProductHTML)
@@ -133,6 +133,7 @@ export default function CreateProduct() {
     })
     const rescreateProductMutation = await createProductMutation.mutateAsync(formData)
     if (rescreateProductMutation) {
+      socket.emit('addProduct')
       toast.success(rescreateProductMutation.data?.message, {
         position: 'top-center',
         autoClose: 1000
@@ -184,7 +185,12 @@ export default function CreateProduct() {
                     }
                   ]}
                 >
-                  <InputComponent value={stateProducts.name} onChange={handleInputChange} name='name' />
+                  <InputComponent
+                    placeholder='Nhập tên sản phẩm'
+                    value={stateProducts.name}
+                    onChange={handleInputChange}
+                    name='name'
+                  />
                 </Form.Item>
               </div>
               <div className='w-[50%]'>
@@ -197,10 +203,19 @@ export default function CreateProduct() {
                       required: true,
                       message: 'Nhập Số Lượng Sản Phẩm'
                     },
-                    { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
+                    { pattern: /^\d+(,\d+)*$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
                   ]}
                 >
-                  <InputComponent value={stateProducts.quantity} onChange={handleInputChange} name='quantity' />
+                  <NumericFormat
+                    placeholder='nhập số lượng sản phẩm'
+                    value={stateProducts.quantity}
+                    onChange={handleInputChange}
+                    name='quantity'
+                    allowLeadingZeros
+                    thousandSeparator=','
+                    className='border border-gray-300 w-full rounded h-8 outline-none px-3'
+                  />
+                  {/* <InputComponent value={stateProducts.quantity} onChange={handleInputChange} name='quantity' /> */}
                 </Form.Item>
               </div>
             </div>
@@ -215,14 +230,18 @@ export default function CreateProduct() {
                       required: true,
                       message: 'Nhập Giá Sản Phẩm'
                     },
-                    { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
+                    { pattern: /^\d+(,\d+)*$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
                   ]}
                   hasFeedback
                 >
-                  <InputComponent
+                  <NumericFormat
+                    placeholder='Nhập giá gốc'
                     value={stateProducts.price_before_discount}
                     onChange={handleInputChange}
                     name='price_before_discount'
+                    allowLeadingZeros
+                    thousandSeparator=','
+                    className='border border-gray-300 w-full rounded h-8 outline-none px-3'
                   />
                 </Form.Item>
               </div>
@@ -235,10 +254,19 @@ export default function CreateProduct() {
                   hasFeedback
                   rules={[
                     { validator: validatePrice },
-                    { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
+                    { pattern: /^\d+(,\d+)*$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
                   ]}
                 >
-                  <InputComponent value={stateProducts.price} onChange={handleInputChange} name='price' />
+                  <NumericFormat
+                    value={stateProducts.price}
+                    placeholder='Nhập giá sale'
+                    onChange={handleInputChange}
+                    name='price'
+                    allowLeadingZeros
+                    thousandSeparator=','
+                    className='border border-gray-300 w-full rounded h-8 outline-none px-3'
+                  />
+                  {/* <InputComponent value={stateProducts.price} onChange={handleInputChange} name='price' /> */}
                 </Form.Item>
               </div>
             </div>
@@ -340,15 +368,18 @@ export default function CreateProduct() {
                         required: true,
                         message: 'Nhập cân nặng Sản Phẩm'
                       },
-                      { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
+                      { pattern: /^\d+(,\d+)*$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
                     ]}
                     hasFeedback
                   >
-                    <InputComponent
+                    <NumericFormat
                       placeholder='gram'
                       value={stateProducts.weight}
                       onChange={handleInputChange}
                       name='weight'
+                      allowLeadingZeros
+                      thousandSeparator=','
+                      className='border border-gray-300 w-full rounded h-8 outline-none px-3'
                     />
                   </Form.Item>
                 </div>
@@ -375,13 +406,7 @@ export default function CreateProduct() {
                 </div>
               </div>
             </div>
-            {/* <MdEditor
-              value={detailProduct}
-              style={{ height: '300px' }}
-              renderHTML={(text) => mdParser.render(text)}
-              onChange={handleEditorChangeForDetailProduct}
-              name='detailProduct'
-            /> */}
+
             {/* Mô tả sản phẩm */}
             <span className='text-lg'>Mô Tả Sản Phẩm</span>
             <MdEditor

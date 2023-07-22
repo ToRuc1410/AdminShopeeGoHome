@@ -66,7 +66,10 @@ export default function Products() {
                   Giá Khuyến Mãi
                 </th>
                 <th scope='col' className='px-6 py-3'>
-                  Số Lượng
+                  Số Lượng Kho
+                </th>
+                <th scope='col' className='px-6 py-3'>
+                  Đã Bán
                 </th>
                 <th scope='col' className='px-6 py-3'>
                   Mô Tả

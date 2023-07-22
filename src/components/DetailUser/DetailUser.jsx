@@ -1,39 +1,197 @@
 import React, { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { Button, Form, Modal } from 'antd'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { renderColorStatusCode, renderHoursAndDate, renderStatusCode } from '../../pages/Utils/renderStatusCode'
 import { formatNumber, hanldeTime } from '../../pages/Utils/utils'
-
 import { useState } from 'react'
-
 import UserAPI from '../../apis/user.api'
+import InputComponent from '../InputComponent/InputComponent'
+import { toast } from 'react-toastify'
 
 export default function DetailUser() {
   const location = useLocation()
-  //   const componentRef = useRef()
+  const initStates = () => ({
+    name: '',
+    phone: '',
+    address: '',
+    updatePass: '',
+    email: ''
+  })
+
   const [detailData, setDetailData] = useState([])
+  const [openCreate, setOpenCreate] = useState(false)
+  const [stateUser, setStateUser] = useState(initStates())
   const idDetailStatus = location.state.detailUser
-  console.log(idDetailStatus)
-  const { data: getDetailData } = useQuery({
+
+  const { data: getDetailData, refetch } = useQuery({
     queryKey: ['getDetailOrder'],
     queryFn: () => UserAPI.getDetailUser(idDetailStatus)
+  })
+
+  const updateInformationUserMutation = useMutation({
+    mutationFn: UserAPI.updateInformationUser,
+    onSuccess: (data) => {
+      toast.success(data.data.message)
+      refetch()
+    }
   })
 
   useEffect(() => {
     if (getDetailData && getDetailData.data) {
       const detailData = getDetailData.data.data
       setDetailData(detailData)
+      setStateUser({
+        name: detailData.name,
+        phone: detailData.phone,
+        address: detailData.address,
+        email: detailData.email
+      })
     }
   }, [getDetailData])
 
-  console.log(detailData)
+  const handleInputChange = (event) => {
+    const { name, value } = event.target
+    setStateUser({ ...stateUser, [name]: value })
+  }
+  const [form] = Form.useForm()
+  const validatePhoneNumber = (_, value) => {
+    const phoneRegex = /^\d{10}$/
+    if (value && !phoneRegex.test(value)) {
+      return Promise.reject('Số điện thoại là 10 chữ số.')
+    }
+    return Promise.resolve()
+  }
 
+  // Khi bấm vào nút để mở Modal
+  const handleOpenModal = () => {
+    form.setFieldsValue(stateUser)
+    setOpenCreate(!openCreate)
+  }
+
+  const handleOnFinish = async () => {
+    await updateInformationUserMutation.mutateAsync({
+      ...stateUser,
+      idUser: idDetailStatus
+    })
+    setStateUser({ ...stateUser, updatePass: '' })
+    setOpenCreate(false)
+  }
   return (
     <div className='pb-2'>
       <div className='flex justify-between bg-white py-3 px-5'>
         <div className='py-2'>Thông Tin Khách Hàng</div>
-        <div className='flex'></div>
+
+        <button
+          className='py-2 flex bg-blue-500 px-3 justify-between text-gray-100 rounded-md'
+          onClick={handleOpenModal}
+        >
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            fill='none'
+            viewBox='0 0 24 24'
+            strokeWidth={1.5}
+            stroke='currentColor'
+            className='w-4 h-4 mr-1'
+          >
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75'
+            />
+          </svg>
+          <p className='font-thin text-[14px]'>cập nhật thông tin</p>
+        </button>
+
+        <Modal
+          title='Cập Nhật Thông Tin Khách Hàng'
+          open={openCreate}
+          footer={null}
+          onCancel={() => setOpenCreate(false)}
+        >
+          <Form onFinish={handleOnFinish} form={form} initialValues={stateUser}>
+            <Form.Item label='Email' name='email' className='flex justify-center bg-gray-200'>
+              <span>{stateUser.email}</span>
+            </Form.Item>
+            <Form.Item
+              label='Tên Khách Hàng'
+              name='name'
+              rules={[
+                {
+                  required: true,
+                  message: 'Nhập Tên là bắt buộc'
+                }
+              ]}
+            >
+              <InputComponent placeholder='Nhập Tên' name='name' onChange={handleInputChange} value={stateUser.name} />
+            </Form.Item>
+            <Form.Item
+              label='Số Điện Thoại'
+              name='phone'
+              rules={[
+                {
+                  validator: validatePhoneNumber
+                },
+                {
+                  required: true,
+                  message: 'Nhập SDT là bắt buộc'
+                }
+              ]}
+            >
+              <InputComponent
+                placeholder='Nhập SDT'
+                name='phone'
+                onChange={handleInputChange}
+                value={stateUser.phone}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label='Địa chỉ'
+              name='address'
+              className='flex-wrap'
+              rules={[
+                {
+                  required: true,
+                  message: 'Nhập Địa Chỉ là bắt buộc'
+                }
+              ]}
+            >
+              <InputComponent
+                placeholder='Nhập Địa Chỉ'
+                name='address'
+                onChange={handleInputChange}
+                value={stateUser.address}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label='Cập Nhật lại Mật Khẩu'
+              name='updatePass'
+              rules={[
+                {
+                  min: 6,
+                  max: 160,
+                  message: 'Tên phải từ 6 đến 160 kí tự'
+                }
+              ]}
+            >
+              <InputComponent
+                placeholder='Cập Nhật PassWord'
+                name='updatePass'
+                onChange={handleInputChange}
+                value={stateUser.updatePass}
+              />
+            </Form.Item>
+            <Form.Item>
+              <Button className='bg-blue-400 float-right' type='primary' htmlType='submit'>
+                Lưu
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
+
       <div className='container'>
         <div className='grid grid-cols-12 gap-6 mt-2 px-5'>
           <div className='col-span-9 rounded-sm  px-4'>

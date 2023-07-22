@@ -4,9 +4,12 @@ import ProductAPI from '../../apis/produts.api'
 import { toast } from 'react-toastify'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { formatNumber } from '../../pages/Utils/utils'
+import io from 'socket.io-client'
+
+const socket = io('http://localhost:4000/')
 
 export default function RenderProduct({ idCategory, name, products }) {
-  const [isToggle, setIsToggle] = useState(false)
+  const [isToggle, setIsToggle] = useState(true)
   const queryClient = useQueryClient()
   const deleteProductMutation = useMutation({
     mutationFn: ProductAPI.deleteProduct,
@@ -18,12 +21,12 @@ export default function RenderProduct({ idCategory, name, products }) {
   const handleToggle = () => {
     setIsToggle(!isToggle)
   }
-  console.log(products)
   const handleDeleteProduct = async (idProduct) => {
     const confirmation = window.confirm('Bạn có chắc Xoá Sản Phẩm này không?')
     if (confirmation) {
       const resDeleteCategory = await deleteProductMutation.mutateAsync(idProduct)
       if (resDeleteCategory) {
+        socket.emit('deleteProduct')
         toast.success(resDeleteCategory?.data.message, {
           position: 'top-center',
           autoClose: 1000
@@ -87,6 +90,7 @@ export default function RenderProduct({ idCategory, name, products }) {
               <td className='px-6 py-2'>{`đ${formatNumber(product.price_before_discount)}`}</td>
               <td className='px-6 py-2'>{product.price !== 0 ? `đ${formatNumber(product.price)}` : '_'}</td>
               <td className='px-6 py-2'>{formatNumber(product.quantity)}</td>
+              <td className='px-6 py-2'>{formatNumber(product.sold ? product.sold : 0)}</td>
               <td className='px-6 line-clamp-3'>{product.descriptionText}</td>
               <td className='py-2'>
                 <img src={product.image} alt={product.name} className='h-20 w-20' />

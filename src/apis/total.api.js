@@ -7,7 +7,14 @@ const totalAll = {
       console.error('Error fetching data:', error)
       throw error
     }
+  },
+  async dataMapMonth() {
+    try {
+      return await http.get('/dataMapMonth')
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      throw error
+    }
   }
 }
-
 export default totalAll

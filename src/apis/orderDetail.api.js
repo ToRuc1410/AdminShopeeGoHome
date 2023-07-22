@@ -50,10 +50,11 @@ const OrderDetailAPI = {
     try {
       return await http.put(`/updateDelivery/${idPutDelivery}`)
     } catch (error) {
-      toast.error(error.response.data.message, {
-        position: 'top-center',
-        autoClose: 3000
-      })
+      // toast.error(error.response.data.message, {
+      //   position: 'top-center',
+      //   autoClose: 3000
+      // })
+      console.log(error.response.data.message)
       throw error
     }
   },

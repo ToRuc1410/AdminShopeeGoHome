@@ -8,6 +8,10 @@ import { Button, Modal, Form, Select } from 'antd'
 import { useState } from 'react'
 import { toast } from 'react-toastify'
 import { useReactToPrint } from 'react-to-print'
+import { Spinner } from '@material-tailwind/react'
+import io from 'socket.io-client'
+
+const socket = io('http://localhost:4000/')
 
 const reasion = [
   {
@@ -79,6 +83,7 @@ export default function DetailOrderStatus() {
   const handleOk = async () => {
     const resUpdateMutation = await updateMutation.mutateAsync()
     if (resUpdateMutation) {
+      socket.emit('confirmOrder')
       toast.success(resUpdateMutation.data?.message, {
         position: 'top-center',
         autoClose: 1000
@@ -91,6 +96,7 @@ export default function DetailOrderStatus() {
     }
     setOpen(false)
   }
+
   const handleCancel = () => {
     setOpen(false)
   }
@@ -118,16 +124,19 @@ export default function DetailOrderStatus() {
     const shouldPrint = window.confirm('Bạn có muốn chuyển sang trạng thái giao hàng?')
     if (shouldPrint) {
       printData()
-      await updateDeliveryMutation.mutateAsync()
+      const res = await updateDeliveryMutation.mutateAsync()
+      if (res) {
+        socket.emit('deliveryOrder')
+      }
     }
   }
   const handleCancelOrder = (idOrder) => async (values) => {
-    console.log(idOrder, values)
     const resCancelOrder = await cancelOrderMutation.mutateAsync({
       messageReasion: values.reasonCancel,
       ...detailData
     })
     if (resCancelOrder) {
+      socket.emit('cancelOrder')
       toast.success(resCancelOrder.data?.message, {
         position: 'top-center',
         autoClose: 1000
@@ -142,9 +151,10 @@ export default function DetailOrderStatus() {
   }
 
   const handleDone = (idOrder) => async () => {
-    // console.log(idOrder)
+    console.log(idOrder)
     const resUpdateDoneOrder = await updateDoneMutation.mutateAsync()
     if (resUpdateDoneOrder) {
+      socket.emit('doneOrder')
       toast.success(resUpdateDoneOrder.data?.message, {
         position: 'top-center',
         autoClose: 1000
@@ -165,51 +175,63 @@ export default function DetailOrderStatus() {
           <div className='flex justify-between bg-white py-3 px-5'>
             <div className='py-2'>Quản Lý Đơn Hàng</div>
             {detailData?.status === 3 && (
-              <button
-                className='hover:bg-green-500/80 flex bg-green-500 text-white py-2 px-4 rounded-sm mx-2'
-                onClick={handleDone(detailData?._id)}
-              >
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  strokeWidth={1.5}
-                  stroke='currentColor'
-                  className='w-4 h-4'
-                >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    d='M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z'
-                  />
-                </svg>
+              <>
+                {updateDoneMutation.isLoading ? (
+                  <Spinner />
+                ) : (
+                  <button
+                    className='hover:bg-green-500/80 flex bg-green-500 text-white py-2 px-4 rounded-sm mx-2'
+                    onClick={handleDone(detailData?._id)}
+                  >
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      strokeWidth={1.5}
+                      stroke='currentColor'
+                      className='w-4 h-4'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        d='M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z'
+                      />
+                    </svg>
 
-                <span className='text-sm'>Giao Hàng Thành Công</span>
-              </button>
+                    <span className='text-sm'>Giao Hàng Thành Công</span>
+                  </button>
+                )}
+              </>
             )}
             <div className='flex'>
-              {detailData?.status === 2 && (
-                <button
-                  className='hover:bg-blue-500/80 flex bg-blue-500 text-white py-2 px-4 rounded-sm mx-2'
-                  onClick={handlePrintData}
-                >
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    strokeWidth={1.5}
-                    stroke='currentColor'
-                    className='w-4 h-4'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      d='M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z'
-                    />
-                  </svg>
+              {(detailData?.status === 2 || detailData?.status === 3) && (
+                <>
+                  {updateDeliveryMutation.isLoading ? (
+                    <Spinner />
+                  ) : (
+                    <button
+                      className='hover:bg-blue-500/80 flex bg-blue-500 text-white py-2 px-4 rounded-sm mx-2'
+                      onClick={handlePrintData}
+                    >
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        strokeWidth={1.5}
+                        stroke='currentColor'
+                        className='w-4 h-4'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          d='M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z'
+                        />
+                      </svg>
 
-                  <span className='text-sm'>Tạo Phiếu Vận Chuyển</span>
-                </button>
+                      <span className='text-sm'>Tạo Phiếu Vận Chuyển</span>
+                    </button>
+                  )}
+                </>
               )}
               {detailData?.status !== 5 && (
                 <Button
@@ -509,11 +531,9 @@ export default function DetailOrderStatus() {
                         <span className='font-bold py-2'>Tổng giá trị đơn hàng</span>
                       </div>
                       <div className='flex flex-col text-right text-sm px-3'>
-                        {detailData.detailPurchase.length > 0 ? (
-                          <span>{` ₫${formatNumber(calculatePrice(detailData.detailPurchase))}`}</span>
-                        ) : (
-                          <span>_</span>
-                        )}
+                        <span>{` ₫${formatNumber(
+                          calculatePrice(detailData.detailPurchase ? detailData.detailPurchase : 0)
+                        )}`}</span>
 
                         <span className='py-2'>{`₫${formatNumber(detailData?.priceDelivery)}`}</span>
                         <span>đ0</span>
@@ -546,6 +566,7 @@ export default function DetailOrderStatus() {
                             Xác Nhận Đơn Hàng
                           </Button>
                         )}
+
                         <Modal
                           title='Xác Nhận Đơn Hàng'
                           open={open}
@@ -553,8 +574,6 @@ export default function DetailOrderStatus() {
                           onOk={handleOk}
                           onCancel={handleCancel}
                         >
-                          <p>Số Lượng sản phẩm sẽ bị trừ vào trong kho</p>
-
                           <p className='py-3'>
                             Bạn có chắc muốn chuyển sang trạng thái <b>Xuất Hàng</b>?
                           </p>

@@ -54,3 +54,7 @@ export const hanldeTime = (time) => {
   const days = Math.floor(hours / 24)
   return `${days} ngày trước`
 }
+export const removeCommas = (number) => {
+  // Loại bỏ tất cả dấu phẩy từ chuỗi
+  return number.replace(/,/g, '')
+}

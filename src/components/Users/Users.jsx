@@ -216,7 +216,7 @@ export default function Users() {
                 ))
               ) : (
                 <tr>
-                  <td>Không Có</td>
+                  <td>Danh sách rỗng...</td>
                 </tr>
               )}
             </tbody>
