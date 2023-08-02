@@ -4,9 +4,7 @@ import ProductAPI from '../../apis/produts.api'
 import { toast } from 'react-toastify'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { formatNumber } from '../../pages/Utils/utils'
-import io from 'socket.io-client'
-
-const socket = io('http://localhost:4000/')
+import socket from '../../constant/socket'
 
 export default function RenderProduct({ idCategory, name, products }) {
   const [isToggle, setIsToggle] = useState(true)

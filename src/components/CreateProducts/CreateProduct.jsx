@@ -13,9 +13,7 @@ import { useForm } from 'antd/es/form/Form'
 import Spinner from '../Spinner/Spinner'
 import { NumericFormat } from 'react-number-format'
 import { removeCommas } from '../../pages/Utils/utils'
-import io from 'socket.io-client'
-
-const socket = io('http://localhost:4000/')
+import socket from '../../constant/socket'
 
 export default function CreateProduct() {
   const initStates = () => ({

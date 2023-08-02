@@ -15,7 +15,7 @@ class Http {
     this.accessToken = getAccessTokenFromLS()
     this.refreshToken = getRefreshTokenFromLS()
     this.instance = axios.create({
-      baseURL: 'http://localhost:4000/system/',
+      baseURL: 'https://be-servergoomohome.onrender.com/',
       headers: { 'Content-Type': 'application/json' }
     })
     //request

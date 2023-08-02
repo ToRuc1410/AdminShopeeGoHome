@@ -1,14 +1,22 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import React from 'react'
 import totalAll from '../../apis/total.api'
 import { useEffect } from 'react'
 import { useState } from 'react'
 import { formatNumber } from '../../pages/Utils/utils'
 import MapChartJs from '../MapChartJs/MapChartJs'
+import { DatePicker } from 'antd'
+const { RangePicker } = DatePicker
+import * as XLSX from 'xlsx'
+import moment from 'moment'
+import 'moment/locale/vi' // Import gói ngôn ngữ tiếng Việt
+import { renderHoursAndDate, renderStatusCode } from '../../pages/Utils/renderStatusCode'
 
 export default function SlideShow() {
   const [listTotal, setlistTotal] = useState([])
   const [listDataMapMonth, setListDataMapMonth] = useState([])
+  const [selectedRange, setSelectedRange] = useState([])
+  const [errorMessages, setErrorMessages] = useState([])
   const { data: gettotalAll, refetch } = useQuery({
     queryKey: ['gettotalAll'],
     queryFn: totalAll.gettotalAll
@@ -17,7 +25,12 @@ export default function SlideShow() {
     queryKey: ['dataMapMonth'],
     queryFn: totalAll.dataMapMonth
   })
-
+  const getDataDateMutation = useMutation({
+    mutationFn: totalAll.getDataDate,
+    onSuccess: () => {
+      refetch()
+    }
+  })
   useEffect(() => {
     if (gettotalAll && gettotalAll.data) {
       setlistTotal(gettotalAll)
@@ -29,12 +42,126 @@ export default function SlideShow() {
       setListDataMapMonth(dataMapMonth.data.data)
     }
   }, [dataMapMonth])
+
+  // export data files
+  const handleExportExcel = async () => {
+    // So sánh ngày bắt đầu với thời gian hiện tại
+    const errorMessages = []
+    // Kiểm tra validate
+    if (!selectedRange[0]) {
+      errorMessages.push('Vui lòng chọn ngày bắt đầu!')
+    } else if (!selectedRange[1]) {
+      errorMessages.push('Vui lòng chọn ngày bắt kết thúc!')
+    } else {
+      const today = moment().format('YYYY-MM-DD')
+      const startTime = selectedRange[0].toISOString().slice(0, 10)
+      const endTime = selectedRange[1].toISOString().slice(0, 10)
+      // So sánh thời gian bắt đầu với thời gian hiện tại
+      if (startTime > today) {
+        errorMessages.push('Thời gian bắt đầu không được lớn hơn thời gian hiện tại!')
+      } else if (endTime > today) {
+        errorMessages.push('Thời gian kết thúc không được lớn hơn thời gian hiện tại!')
+      } else {
+        const resgetDataDate = await getDataDateMutation.mutateAsync({ startTime: startTime, endTime: endTime })
+        if (resgetDataDate) {
+          const resDatadate = resgetDataDate && resgetDataDate?.data.data
+          console.log(resDatadate)
+          let priceExcel = 0
+          let price_before_discountExcel = 0
+          let buy_countExcel = 0
+          let nameExcel = ''
+          // Lọc và chỉ lấy các thuộc tính cần thiết
+          const filteredData = resDatadate.map((item) => ({
+            address: item.address,
+            delivered_at: item.status == 1 || item.status == 2 ? '' : renderHoursAndDate(item.delivered_at),
+            isDelivered: item.isDelivered == false ? 'chưa giao' : 'đã giao',
+            isPaid: item.isPaid == false ? 'chưa thanh toán' : 'đã thanh toán',
+            message: item.message,
+            nameUser: item.nameUser,
+            orderCode: item.orderCode,
+            orderDate: renderHoursAndDate(item.orderDate),
+            paiAt: item.status == 1 || item.status == 2 || item.status == 3 ? '' : renderHoursAndDate(item.paiAt),
+            payment_method: item.payment_method,
+            phone: item.phone,
+            priceDelivery: item.priceDelivery,
+            status: renderStatusCode(item.status),
+            total_price: item.total_price,
+            detailPurchase: item.detailPurchase.map(
+              (purchase) => (
+                (priceExcel = purchase.price),
+                (price_before_discountExcel = purchase.price_before_discount),
+                (buy_countExcel = purchase.buy_count),
+                (nameExcel = purchase.product.name)
+              )
+            ),
+            price: priceExcel,
+            price_before_discount: price_before_discountExcel,
+            buy_count: buy_countExcel,
+            name: nameExcel
+          }))
+          console.log(filteredData)
+          const wb = XLSX.utils.book_new()
+          const ws = XLSX.utils.json_to_sheet(filteredData)
+          XLSX.utils.book_append_sheet(wb, ws, 'Danh sách đơn hàng')
+          XLSX.writeFile(wb, 'DanhSachDonHang.xlsx')
+        }
+      }
+    }
+    setErrorMessages(errorMessages)
+
+    if (errorMessages.length > 0) {
+      return
+    } else {
+      setErrorMessages([])
+    }
+  }
+
   return (
     <div className='bg-white'>
       {listTotal ? (
         <>
           <div className='container'>
-            <p className='flex justify-start pt-2 ml-2 font-thin text-gray-500'>Doanh Thu Và Đơn Bán Từ Thứ 2:</p>
+            <div className='flex justify-between'>
+              <p className=' pt-2 ml-2 font-thin text-gray-500'>Doanh Thu Và Đơn Bán Từ Thứ 2:</p>
+              <div className='flex py-1'>
+                <RangePicker
+                  bordered={true}
+                  value={selectedRange}
+                  onChange={(dates) => setSelectedRange(dates)}
+                  format='YYYY-MM-DD'
+                />
+                <button
+                  className='ml-3 flex text-xs bg-slate-400 rounded-lg  px-2 py-2'
+                  onClick={handleExportExcel}
+                  // disabled={isDownloadDisabled}
+                >
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    strokeWidth={1.5}
+                    stroke='currentColor'
+                    className='w-4 h-4'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      d='M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z'
+                    />
+                  </svg>
+
+                  <span>Xuất file Excel</span>
+                </button>
+              </div>
+            </div>
+            <div className='flex justify-end'>
+              {errorMessages &&
+                errorMessages.map((message, index) => (
+                  <span key={index} style={{ color: 'red', display: 'block' }}>
+                    {message}
+                  </span>
+                ))}
+            </div>
             <div className='grid grid-cols-12 gap-4'>
               <div className='col-span-3 '>
                 <div className='m-4 bg-blue-400'>

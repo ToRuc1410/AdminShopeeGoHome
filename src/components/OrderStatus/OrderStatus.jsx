@@ -15,9 +15,7 @@ import { toast } from 'react-toastify'
 import { orderStatus, payMent } from '../../constant/OrderStatus'
 import useQueryConfig from '../../hook/useQueryConfig'
 import * as XLSX from 'xlsx'
-import io from 'socket.io-client'
-
-const socket = io('http://localhost:4000/')
+import socket from '../../constant/socket'
 
 export default function OrderStatus() {
   // getAllOrder Detail

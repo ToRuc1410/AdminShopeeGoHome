@@ -15,6 +15,14 @@ const totalAll = {
       console.error('Error fetching data:', error)
       throw error
     }
+  },
+  async getDataDate(body) {
+    try {
+      return await http.post('/dataDate', body)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      throw error
+    }
   }
 }
 export default totalAll

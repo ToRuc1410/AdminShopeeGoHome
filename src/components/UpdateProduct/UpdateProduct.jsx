@@ -13,9 +13,7 @@ import Spinner from '../Spinner/Spinner'
 import { toast } from 'react-toastify'
 import { removeCommas } from '../../pages/Utils/utils'
 import { NumericFormat } from 'react-number-format'
-import io from 'socket.io-client'
-
-const socket = io('http://localhost:4000/')
+import socket from '../../constant/socket'
 
 export default function UpdateProduct() {
   const initStates = () => ({

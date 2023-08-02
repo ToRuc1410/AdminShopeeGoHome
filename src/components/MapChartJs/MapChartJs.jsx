@@ -7,7 +7,7 @@ export default function MapChartJs({ dataMapMonth }) {
   const months = Array.from({ length: 12 }, (_, i) => i + 1)
   const monthsLable = Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`)
   // Tạo mảng số tiền tương ứng cho mỗi tháng
-  console.log(dataMapMonth)
+
   const resMoneyData = months.map((month) => {
     const monthData = dataMapMonth.find((item) => item.month === month)
     return monthData ? monthData.money : 0
