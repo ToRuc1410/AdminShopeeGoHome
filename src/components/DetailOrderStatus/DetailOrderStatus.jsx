@@ -2,14 +2,23 @@ import React, { useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import OrderDetailAPI from '../../apis/orderDetail.api'
 import { useMutation, useQuery } from '@tanstack/react-query'
+
 import { renderColorStatusCode, renderHoursAndDate, renderStatusCode } from '../../pages/Utils/renderStatusCode'
+
+import { renderColorStatusCode, renderDate, renderStatusCode } from '../../pages/Utils/renderStatusCode'
+
 import { calculatePrice, formatNumber } from '../../pages/Utils/utils'
 import { Button, Modal, Form, Select } from 'antd'
 import { useState } from 'react'
 import { toast } from 'react-toastify'
 import { useReactToPrint } from 'react-to-print'
 import { Spinner } from '@material-tailwind/react'
+
 import socket from '../../constant/socket'
+
+import io from 'socket.io-client'
+
+const socket = io('http://localhost:4000/')
 
 const reasion = [
   {
@@ -165,6 +174,7 @@ export default function DetailOrderStatus() {
     }
   }
   // Tiếp tục xử lý dữ liệu
+
   useEffect(() => {
     socket.on('DeliveredOrderToAdmin', () => {
       refetch()
@@ -173,6 +183,9 @@ export default function DetailOrderStatus() {
       socket.off('DeliveredOrderToAdmin')
     }
   }, [])
+
+  console.log(detailData)
+
   return (
     <div className='pb-2'>
       {detailData ? (
@@ -351,7 +364,11 @@ export default function DetailOrderStatus() {
                   </div>
                   <div className='flex flex-col font-bold text-right'>
                     <span className='pt-2'>{detailData?.orderCode}</span>
+
                     <span className='py-2 '>{renderHoursAndDate(detailData?.orderDate)}</span>
+
+                    <span className='py-2 '>{renderDate(detailData?.orderDate)}</span>
+
                     {hidden ? (
                       <></>
                     ) : (
