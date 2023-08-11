@@ -35,6 +35,7 @@ export default function useRouterElement() {
   const routeElements = useRoutes([
     {
       path: '/system',
+
       element: <ProtectedRouter />,
       children: [
         {
@@ -43,6 +44,7 @@ export default function useRouterElement() {
           children: [
             {
               path: '/system/orders',
+              index: true,
               element: <OrderStatus />
             },
             {
