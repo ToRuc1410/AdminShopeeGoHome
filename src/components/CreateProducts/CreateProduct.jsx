@@ -15,9 +15,6 @@ import { NumericFormat } from 'react-number-format'
 import { removeCommas } from '../../pages/Utils/utils'
 
 import socket from '../../constant/socket'
-import io from 'socket.io-client'
-
-const socket = io('http://localhost:4000/')
 
 export default function CreateProduct() {
   const initStates = () => ({

@@ -18,10 +18,6 @@ import * as XLSX from 'xlsx'
 
 import socket from '../../constant/socket'
 
-import io from 'socket.io-client'
-
-const socket = io('http://localhost:4000/')
-
 export default function OrderStatus() {
   // getAllOrder Detail
   const navigate = useNavigate()

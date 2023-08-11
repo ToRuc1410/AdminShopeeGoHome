@@ -3,9 +3,9 @@ import { useLocation } from 'react-router-dom'
 import OrderDetailAPI from '../../apis/orderDetail.api'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
-import { renderColorStatusCode, renderHoursAndDate, renderStatusCode } from '../../pages/Utils/renderStatusCode'
+import { renderHoursAndDate, renderStatusCode } from '../../pages/Utils/renderStatusCode'
 
-import { renderColorStatusCode, renderDate, renderStatusCode } from '../../pages/Utils/renderStatusCode'
+import { renderColorStatusCode, renderDate } from '../../pages/Utils/renderStatusCode'
 
 import { calculatePrice, formatNumber } from '../../pages/Utils/utils'
 import { Button, Modal, Form, Select } from 'antd'
@@ -15,10 +15,6 @@ import { useReactToPrint } from 'react-to-print'
 import { Spinner } from '@material-tailwind/react'
 
 import socket from '../../constant/socket'
-
-import io from 'socket.io-client'
-
-const socket = io('http://localhost:4000/')
 
 const reasion = [
   {
