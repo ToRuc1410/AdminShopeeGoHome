@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import Header from '../../components/Header/header'
+// import Header from '../../components/Header/header'
 
 import { NavLink, Outlet } from 'react-router-dom'
 import classNames from 'classnames'
+import Header from '../../components/Header/Header'
 
 const AdminPage = () => {
   const [isActive, setIsActive] = useState(false)
