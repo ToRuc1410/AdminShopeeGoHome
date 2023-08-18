@@ -35,6 +35,25 @@ export default function useRouterElement() {
   const routeElements = useRoutes([
     {
       path: '/system',
+      element: <RejectRouter />,
+      children: [
+        {
+          path: '/system/login',
+          element: <Login />
+        },
+        {
+          path: '/system/forgotpassword',
+          element: <ForgotPassword />
+        },
+        {
+          path: '/system/reset-password/:resetPassword',
+          element: <ResetPassword />
+        }
+      ]
+    },
+
+    {
+      path: '/system',
       element: <ProtectedRouter />,
       children: [
         {
@@ -82,24 +101,6 @@ export default function useRouterElement() {
               element: <SlideShow />
             }
           ]
-        }
-      ]
-    },
-    {
-      path: '/system',
-      element: <RejectRouter />,
-      children: [
-        {
-          path: '/system/login',
-          element: <Login />
-        },
-        {
-          path: '/system/forgotpassword',
-          element: <ForgotPassword />
-        },
-        {
-          path: '/system/reset-password/:resetPassword',
-          element: <ResetPassword />
         }
       ]
     },
