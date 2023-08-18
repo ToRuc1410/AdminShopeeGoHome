@@ -36,6 +36,7 @@ export default function useRouterElement() {
     {
       path: '/system',
       element: <ProtectedRouter />,
+      index: true,
       children: [
         {
           path: '/system',
@@ -43,7 +44,6 @@ export default function useRouterElement() {
           children: [
             {
               path: '/system/orders',
-              index: true,
               element: <OrderStatus />
             },
             {
