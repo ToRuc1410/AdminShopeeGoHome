@@ -35,7 +35,6 @@ export default function useRouterElement() {
   const routeElements = useRoutes([
     {
       path: '/system',
-
       element: <ProtectedRouter />,
       children: [
         {
