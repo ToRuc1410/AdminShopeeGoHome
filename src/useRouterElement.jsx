@@ -36,7 +36,6 @@ export default function useRouterElement() {
     {
       path: '/system',
       element: <ProtectedRouter />,
-      index: true,
       children: [
         {
           path: '/system',
