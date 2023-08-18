@@ -15,7 +15,7 @@ class Http {
     this.accessToken = getAccessTokenFromLS()
     this.refreshToken = getRefreshTokenFromLS()
     this.instance = axios.create({
-      baseURL: 'https://api-goomohome.vercel.app/system',
+      baseURL: 'https://api-goomohome.vercel.app/',
       headers: { 'Content-Type': 'application/json' }
     })
     //request
