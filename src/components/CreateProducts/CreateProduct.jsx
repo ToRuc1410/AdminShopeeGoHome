@@ -14,8 +14,6 @@ import Spinner from '../Spinner/Spinner'
 import { NumericFormat } from 'react-number-format'
 import { removeCommas } from '../../pages/Utils/utils'
 
-import socket from '../../constant/socket'
-
 export default function CreateProduct() {
   const initStates = () => ({
     name: '',
@@ -24,8 +22,6 @@ export default function CreateProduct() {
     price_before_discount: 0,
     descriptionHTML: '',
     descriptionText: '',
-    detailProductHTML: '',
-    detailProductText: '',
     image: null,
     images: [],
     height: '',
@@ -97,7 +93,6 @@ export default function CreateProduct() {
 
   const createProductMutation = useMutation(ProductAPI.createProduct)
   const handleOnFinish = async () => {
-    console.log(stateProducts)
     const {
       name,
       quantity,
@@ -112,13 +107,15 @@ export default function CreateProduct() {
       weight,
       width
     } = stateProducts
+
+    console.log(stateProducts)
     const formData = new FormData()
     formData.append('name', name)
     formData.append('quantity', removeCommas(quantity))
     formData.append('price', removeCommas(price))
     formData.append('height', height)
     formData.append('length', length)
-    formData.append('weight', removeCommas(weight))
+    formData.append('weight', weight)
     formData.append('width', width)
     formData.append('image', image)
     formData.append('categoryId', idCategory)
@@ -132,7 +129,6 @@ export default function CreateProduct() {
     })
     const rescreateProductMutation = await createProductMutation.mutateAsync(formData)
     if (rescreateProductMutation) {
-      socket.emit('addProduct')
       toast.success(rescreateProductMutation.data?.message, {
         position: 'top-center',
         autoClose: 1000
@@ -314,63 +310,21 @@ export default function CreateProduct() {
               <div className='flex'>
                 <div className='w-[50%]'>
                   {/* Chiều cao*/}
-                  <Form.Item
-                    label='Nhập Chiều Cao'
-                    name='height'
-                    rules={[
-                      {
-                        required: true,
-                        message: 'Nhập chiều cao Sản Phẩm'
-                      },
-                      { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
-                    ]}
-                    hasFeedback
-                  >
-                    <InputComponent
-                      placeholder='cm'
-                      value={stateProducts.height}
-                      onChange={handleInputChange}
-                      name='height'
-                    />
+                  <Form.Item label='Nhập Chiều Cao' name='height' hasFeedback>
+                    <InputComponent value={stateProducts.height} onChange={handleInputChange} name='height' />
                   </Form.Item>
                 </div>
                 <div className='w-[50%]'>
                   {/* Chiều Rộng */}
-                  <Form.Item
-                    label='Nhập Chiều Rộng '
-                    name='width'
-                    rules={[
-                      {
-                        required: true,
-                        message: 'Nhập chiều rộng Sản Phẩm'
-                      },
-                      { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
-                    ]}
-                  >
-                    <InputComponent
-                      placeholder='cm'
-                      value={stateProducts.width}
-                      onChange={handleInputChange}
-                      name='width'
-                    />
+                  <Form.Item label='Nhập Chiều Rộng ' name='width'>
+                    <InputComponent value={stateProducts.width} onChange={handleInputChange} name='width' />
                   </Form.Item>
                 </div>
               </div>
               <div className='flex'>
                 <div className='w-[50%]'>
                   {/* cân nặng*/}
-                  <Form.Item
-                    label='Nhập cân nặng'
-                    name='weight'
-                    rules={[
-                      {
-                        required: true,
-                        message: 'Nhập cân nặng Sản Phẩm'
-                      },
-                      { pattern: /^\d+(,\d+)*$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
-                    ]}
-                    hasFeedback
-                  >
+                  <Form.Item label='Nhập cân nặng  (gram)' name='weight' hasFeedback>
                     <NumericFormat
                       placeholder='gram'
                       value={stateProducts.weight}
@@ -384,23 +338,8 @@ export default function CreateProduct() {
                 </div>
                 <div className='w-[50%]'>
                   {/* Chiều dài */}
-                  <Form.Item
-                    label='Nhập Chiều dài '
-                    name='length'
-                    rules={[
-                      {
-                        required: true,
-                        message: 'Nhập chiều dài Sản Phẩm'
-                      },
-                      { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
-                    ]}
-                  >
-                    <InputComponent
-                      placeholder='cm'
-                      value={stateProducts.length}
-                      onChange={handleInputChange}
-                      name='length'
-                    />
+                  <Form.Item label='Nhập Chiều dài ' name='length'>
+                    <InputComponent value={stateProducts.length} onChange={handleInputChange} name='length' />
                   </Form.Item>
                 </div>
               </div>

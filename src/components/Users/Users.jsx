@@ -70,7 +70,7 @@ export default function Users() {
       const confirmation = window.confirm('Bạn có chắc xóa không?')
       if (confirmation) {
         const dataManyChecked = checkedData.map((item) => item._id)
-        console.log(dataManyChecked)
+
         await deleteUsersMutation.mutateAsync(dataManyChecked, {
           onSuccess: (data) => toast.success(data.data.message)
         })
@@ -94,7 +94,6 @@ export default function Users() {
     setName(keyword)
   }
 
-  console.log(name)
   return (
     <div className='px-2'>
       <div className='flex justify-between'>

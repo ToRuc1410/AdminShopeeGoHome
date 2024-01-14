@@ -16,14 +16,24 @@ const removeSpecialCharacter = (str) => {
 }
 // Xử lý URL cho name thân thiện để SEO trên google
 export const generateURLNameAndId = (name, id) => {
-  return removeSpecialCharacter(name).replace(/\s/g, '-') + `i_${id}`
+  return removeSpecialCharacter(name).replace(/\s/g, '-') + `_${id}`
 }
 // get Id từ string URL
 export const getIdFromURLNameAndId = (nameId) => {
-  const arr = nameId.split('-i_')
+  const arr = nameId.split('_')
   return arr[arr.length - 1]
 }
 
+// Hàm để lấy name từ chuỗi đã xử lý
+export const getNameFromGeneratedURL = (generatedURL) => {
+  // Tách phần name từ chuỗi đã tạo
+  const nameWithId = generatedURL.split('_')[0]
+
+  // Loại bỏ các dấu gạch nối và chuyển khoảng trắng thành dấu cách
+  const name = nameWithId.replace(/-/g, ' ')
+
+  return name
+}
 // format giá tiền
 export const formatNumber = (value) => {
   const formattedValue = numeral(value).format('0,0')

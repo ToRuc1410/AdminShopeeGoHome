@@ -27,7 +27,7 @@ export default function Login() {
       // nếu thành công thì set nó thành setIsAuthenticated=true và vào mainlayout
       SetIsAuthenticated(true)
       // và setProfile data User vào localStorage
-      console.log(resLoginMutation)
+
       setProfile(resLoginMutation.data.data.user)
       navigate('/system/orders')
     }

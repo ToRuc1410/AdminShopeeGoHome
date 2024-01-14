@@ -16,8 +16,6 @@ import { orderStatus, payMent } from '../../constant/OrderStatus'
 import useQueryConfig from '../../hook/useQueryConfig'
 import * as XLSX from 'xlsx'
 
-import socket from '../../constant/socket'
-
 export default function OrderStatus() {
   // getAllOrder Detail
   const navigate = useNavigate()
@@ -53,18 +51,6 @@ export default function OrderStatus() {
         })
       )
   }, [resgetAllDetailData])
-  useEffect(() => {
-    socket.on('boughtOrder', () => {
-      refetch()
-    })
-    socket.on('removedOrderToServer', () => {
-      refetch()
-    })
-    return () => {
-      socket.off('boughtOrder')
-      socket.off('removedOrderToServer')
-    }
-  }, [])
   const hanldeOpenDetail = (id) => {
     navigate('/system/detailOrderStatus', {
       state: {
@@ -96,7 +82,6 @@ export default function OrderStatus() {
 
   // export data files
   const handleExportExcel = () => {
-    console.log(dataListOrder)
     if (dataListOrder.length > 0) {
       // Xóa các trường không cần thiết (ví dụ: email)
       const filteredData = dataListOrder.map(

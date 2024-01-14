@@ -37,12 +37,10 @@ export default function ResetPassword() {
     })
     //     const resData = await sendEmailMutation.mutateAsync(email)
     if (resResetPassMutation) {
-      console.log(resResetPassMutation)
       toast.success(resResetPassMutation?.data?.message)
       navigate('/system/orders')
     }
   }
-  console.log(resetPassword)
   return (
     <>
       <div className='sm:mx-auto sm:w-full sm:max-w-sm'>

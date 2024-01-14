@@ -12,7 +12,6 @@ export default function MapChartJs({ dataMapMonth }) {
     const monthData = dataMapMonth.find((item) => item.month === month)
     return monthData ? monthData.money : 0
   })
-  // console.log('resMoneyData', resMoneyData)
   const data = {
     labels: monthsLable,
     datasets: [

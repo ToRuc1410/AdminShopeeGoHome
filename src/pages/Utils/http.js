@@ -15,7 +15,7 @@ class Http {
     this.accessToken = getAccessTokenFromLS()
     this.refreshToken = getRefreshTokenFromLS()
     this.instance = axios.create({
-      baseURL: 'https://api-goomohome.vercel.app/system',
+      baseURL: 'http://localhost:4000/system',
       headers: { 'Content-Type': 'application/json' }
     })
     //request
@@ -59,12 +59,9 @@ class Http {
         if (![422, 401].includes(error.response?.status)) {
           const data = error.response?.data
           const message = data?.message || 'Máy chủ đang quá tải vui lòng thử lại sau'
-          console.log(message)
         }
         // nếu là lỗi 401 Unauthorized
         if (isAxiosUnauthorizedError(error)) {
-          console.log(error)
-
           const config = error.response?.config || { headers: {} }
           const { url } = config
           //Trường hợp: - lỗi do Token hết hạn và request đó k phải là request refesh token
@@ -111,7 +108,6 @@ class Http {
         })
         // refresh_token thành công
         .then((res) => {
-          console.log(res)
           const { access_token } = res.data.data
           setAccessTokenToLS(access_token)
           this.accessToken = access_token
@@ -119,7 +115,6 @@ class Http {
         })
         // refresh_token thất bại thì cho nó logout và ném lỗi ra
         .catch((error) => {
-          console.log(error)
           clearLS()
           this.accessToken = ''
           this.refreshToken = ''

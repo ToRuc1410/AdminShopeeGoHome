@@ -8,7 +8,7 @@ const Spinner = ({ text }) => (
   >
     <Space>
       <Spin tip='Loading' size='large'>
-        <Alert message={text ? text : 'Sản Phẩm đang được thêm'} description='...' type='warning' />
+        <Alert message={text ? text : 'Đang được thêm'} description='...' type='warning' />
       </Spin>
     </Space>
   </Space>

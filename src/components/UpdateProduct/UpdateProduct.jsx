@@ -13,8 +13,6 @@ import Spinner from '../Spinner/Spinner'
 import { toast } from 'react-toastify'
 import { removeCommas } from '../../pages/Utils/utils'
 import { NumericFormat } from 'react-number-format'
-import socket from '../../constant/socket'
-
 export default function UpdateProduct() {
   const initStates = () => ({
     name: '',
@@ -60,7 +58,6 @@ export default function UpdateProduct() {
     }
   })
   const resProductData = ProductData?.data?.data
-
   useEffect(() => {
     resProductData &&
       setStateProducts((prevState) => ({
@@ -147,7 +144,6 @@ export default function UpdateProduct() {
     })
     const resUpdateProductMutation = await updateProductMutation.mutateAsync(formData)
     if (resUpdateProductMutation) {
-      socket.emit('updateProduct')
       toast.success(resUpdateProductMutation.data?.message, {
         position: 'top-center',
         autoClose: 1000
@@ -160,7 +156,6 @@ export default function UpdateProduct() {
       })
     }
   }
-  // console.log(resProductData)
   return (
     <div className='p-4 bg-gray-300'>
       <div className='mt-3'>
@@ -344,47 +339,14 @@ export default function UpdateProduct() {
                   <div className='flex'>
                     <div className='w-[50%]'>
                       {/* Chiều cao*/}
-                      <Form.Item
-                        label='Nhập Chiều Cao'
-                        name='height'
-                        initialValue={resProductData.height}
-                        rules={[
-                          {
-                            required: true,
-                            message: 'Nhập chiều cao Sản Phẩm'
-                          },
-                          { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
-                        ]}
-                        hasFeedback
-                      >
-                        <InputComponent
-                          placeholder='cm'
-                          value={stateProducts.height}
-                          onChange={handleInputChange}
-                          name='height'
-                        />
+                      <Form.Item label='Nhập Chiều Cao' name='height' initialValue={resProductData.height} hasFeedback>
+                        <InputComponent value={stateProducts.height} onChange={handleInputChange} name='height' />
                       </Form.Item>
                     </div>
                     <div className='w-[50%]'>
                       {/* Chiều Rộng */}
-                      <Form.Item
-                        label='Nhập Chiều Rộng '
-                        name='width'
-                        initialValue={resProductData.width}
-                        rules={[
-                          {
-                            required: true,
-                            message: 'Nhập chiều rộng Sản Phẩm'
-                          },
-                          { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
-                        ]}
-                      >
-                        <InputComponent
-                          placeholder='cm'
-                          value={stateProducts.width}
-                          onChange={handleInputChange}
-                          name='width'
-                        />
+                      <Form.Item label='Nhập Chiều Rộng ' name='width' initialValue={resProductData.width}>
+                        <InputComponent value={stateProducts.width} onChange={handleInputChange} name='width' />
                       </Form.Item>
                     </div>
                   </div>
@@ -392,16 +354,9 @@ export default function UpdateProduct() {
                     <div className='w-[50%]'>
                       {/* cân nặng*/}
                       <Form.Item
-                        label='Nhập cân nặng'
+                        label='Nhập cân nặng (gram)'
                         name='weight'
                         initialValue={resProductData.weight}
-                        rules={[
-                          {
-                            required: true,
-                            message: 'Nhập cân nặng Sản Phẩm'
-                          },
-                          { pattern: /^\d+(,\d+)*$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
-                        ]}
                         hasFeedback
                       >
                         <NumericFormat
@@ -417,24 +372,8 @@ export default function UpdateProduct() {
                     </div>
                     <div className='w-[50%]'>
                       {/* Chiều dài */}
-                      <Form.Item
-                        label='Nhập Chiều dài '
-                        name='length'
-                        initialValue={resProductData.length}
-                        rules={[
-                          {
-                            required: true,
-                            message: 'Nhập chiều dài Sản Phẩm'
-                          },
-                          { pattern: /^\d+$/, message: 'Giá trị không hợp lệ. Vui lòng chỉ nhập số.' }
-                        ]}
-                      >
-                        <InputComponent
-                          placeholder='cm'
-                          value={stateProducts.length}
-                          onChange={handleInputChange}
-                          name='length'
-                        />
+                      <Form.Item label='Nhập Chiều dài ' name='length' initialValue={resProductData.length}>
+                        <InputComponent value={stateProducts.length} onChange={handleInputChange} name='length' />
                       </Form.Item>
                     </div>
                   </div>

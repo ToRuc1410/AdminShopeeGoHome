@@ -16,6 +16,9 @@ import ResetPassword from './pages/ResetPassword/ResetPassword.jsx'
 import DetailUser from './components/DetailUser/DetailUser.jsx'
 import ReviewOrder from './components/ReviewOrder/ReviewOrder.jsx'
 import SlideShow from './components/SlideShow/SlideShow.jsx'
+import CategoryBlog from './components/CategoryBlog/CategoryBlog.jsx'
+import Blog from './components/Blog/Blog.jsx'
+import CreateAndUpdateBlog from './components/CreateAndUpdateBlog/CreateAndUpdateBlog.jsx'
 
 // ------kiểm tra login nếu login đúng thì cho vào k thì đá sang /system/login
 function ProtectedRouter() {
@@ -99,6 +102,22 @@ export default function useRouterElement() {
             {
               path: '/system/slidesShow',
               element: <SlideShow />
+            },
+            {
+              path: '/system/categoryBlog',
+              element: <CategoryBlog />
+            },
+            {
+              path: '/system/categoryBlog/:idBlog',
+              element: <Blog />
+            },
+            {
+              path: '/system/categoryBlog/:idBlog/new_blog',
+              element: <CreateAndUpdateBlog />
+            },
+            {
+              path: '/system/categoryBlog/:idBlog/:codeBlog',
+              element: <CreateAndUpdateBlog />
             }
           ]
         }

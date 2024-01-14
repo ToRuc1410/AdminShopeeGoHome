@@ -14,8 +14,6 @@ import { toast } from 'react-toastify'
 import { useReactToPrint } from 'react-to-print'
 import { Spinner } from '@material-tailwind/react'
 
-import socket from '../../constant/socket'
-
 const reasion = [
   {
     label: 'Khách hàng yêu cầu hủy',
@@ -86,7 +84,6 @@ export default function DetailOrderStatus() {
   const handleOk = async () => {
     const resUpdateMutation = await updateMutation.mutateAsync()
     if (resUpdateMutation) {
-      socket.emit('confirmOrder')
       toast.success(resUpdateMutation.data?.message, {
         position: 'top-center',
         autoClose: 1000
@@ -127,10 +124,7 @@ export default function DetailOrderStatus() {
     const shouldPrint = window.confirm('Bạn có muốn chuyển sang trạng thái giao hàng?')
     if (shouldPrint) {
       printData()
-      const res = await updateDeliveryMutation.mutateAsync()
-      if (res) {
-        socket.emit('deliveryOrder')
-      }
+      await updateDeliveryMutation.mutateAsync()
     }
   }
   const handleCancelOrder = (idOrder) => async (values) => {
@@ -139,7 +133,6 @@ export default function DetailOrderStatus() {
       ...detailData
     })
     if (resCancelOrder) {
-      socket.emit('cancelOrder')
       toast.success(resCancelOrder.data?.message, {
         position: 'top-center',
         autoClose: 1000
@@ -154,10 +147,8 @@ export default function DetailOrderStatus() {
   }
 
   const handleDone = (idOrder) => async () => {
-    console.log(idOrder)
     const resUpdateDoneOrder = await updateDoneMutation.mutateAsync()
     if (resUpdateDoneOrder) {
-      socket.emit('doneOrder')
       toast.success(resUpdateDoneOrder.data?.message, {
         position: 'top-center',
         autoClose: 1000
@@ -170,17 +161,6 @@ export default function DetailOrderStatus() {
     }
   }
   // Tiếp tục xử lý dữ liệu
-
-  useEffect(() => {
-    socket.on('DeliveredOrderToAdmin', () => {
-      refetch()
-    })
-    return () => {
-      socket.off('DeliveredOrderToAdmin')
-    }
-  }, [])
-
-  console.log(detailData)
 
   return (
     <div className='pb-2'>

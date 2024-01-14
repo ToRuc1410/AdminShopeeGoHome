@@ -5,8 +5,6 @@ import { toast } from 'react-toastify'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { formatNumber } from '../../pages/Utils/utils'
 
-import socket from '../../constant/socket'
-
 export default function RenderProduct({ idCategory, name, products }) {
   const [isToggle, setIsToggle] = useState(true)
   const queryClient = useQueryClient()
@@ -16,7 +14,6 @@ export default function RenderProduct({ idCategory, name, products }) {
       queryClient.invalidateQueries('getProducts')
     }
   })
-
   const handleToggle = () => {
     setIsToggle(!isToggle)
   }
@@ -25,7 +22,6 @@ export default function RenderProduct({ idCategory, name, products }) {
     if (confirmation) {
       const resDeleteCategory = await deleteProductMutation.mutateAsync(idProduct)
       if (resDeleteCategory) {
-        socket.emit('deleteProduct')
         toast.success(resDeleteCategory?.data.message, {
           position: 'top-center',
           autoClose: 1000
@@ -92,11 +88,11 @@ export default function RenderProduct({ idCategory, name, products }) {
               <td className='px-6 py-2'>{formatNumber(product.sold ? product.sold : 0)}</td>
               <td className='px-6 line-clamp-3'>{product.descriptionText}</td>
               <td className='py-2'>
-                <img src={product.image} alt={product.name} className='h-20 w-20' />
+                <img src={product.image.path} alt={product.name} className='h-20 w-20' />
               </td>
               <td className='py-4 flex flex-wrap justify-around '>
                 {product.images.map((image, index) => (
-                  <img key={index} src={image} alt={`image ${index} `} className='h-10 w-10 object-cover' />
+                  <img key={index} src={image.path} alt={`image ${index} `} className='h-10 w-10 object-cover' />
                 ))}
               </td>
               <td className='py-4 '>

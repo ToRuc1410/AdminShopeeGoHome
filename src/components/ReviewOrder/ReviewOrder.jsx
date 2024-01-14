@@ -20,7 +20,6 @@ export default function ReviewOrder() {
     }
   })
 
-  console.log(getAllReviewOrder)
   // render data xóa hoặc lấy ds
   const [dataListReviewOrder, setDataListReviewOrder] = useState([])
   // dùng để render data for search

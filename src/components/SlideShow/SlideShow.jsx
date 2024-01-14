@@ -65,7 +65,7 @@ export default function SlideShow() {
         const resgetDataDate = await getDataDateMutation.mutateAsync({ startTime: startTime, endTime: endTime })
         if (resgetDataDate) {
           const resDatadate = resgetDataDate && resgetDataDate?.data.data
-          console.log(resDatadate)
+
           let priceExcel = 0
           let price_before_discountExcel = 0
           let buy_countExcel = 0
@@ -99,7 +99,7 @@ export default function SlideShow() {
             buy_count: buy_countExcel,
             name: nameExcel
           }))
-          console.log(filteredData)
+
           const wb = XLSX.utils.book_new()
           const ws = XLSX.utils.json_to_sheet(filteredData)
           XLSX.utils.book_append_sheet(wb, ws, 'Danh sách đơn hàng')

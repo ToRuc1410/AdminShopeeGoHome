@@ -1,32 +1,32 @@
 import http from '../pages/Utils/http'
-const CategoryAPI = {
-  async getAllCategories() {
+const CategoryBlogAPI = {
+  async getAllCategoriesBlog() {
     try {
-      return await http.get('categories')
+      return await http.get('categoriesBlog')
     } catch (error) {
       console.error('Error fetching data:', error)
       throw error
     }
   },
-  async createCategory(body) {
+  async createCategoryBlog(body) {
     try {
-      return await http.post('category', body)
+      return await http.post('categoryBlog', body)
     } catch (error) {
       console.error('Error fetching data:', error)
       throw error
     }
   },
-  async deleteCategory(CategoryId) {
+  async deleteCategoryBlog(CategoryId) {
     try {
-      return await http.delete(`category/${CategoryId}`)
+      return await http.delete(`categoryBlog/${CategoryId}`)
     } catch (error) {
       console.error('Error fetching data:', error)
       throw error
     }
   },
-  async updateCategory(body) {
+  async updateCategoryBlog(body) {
     try {
-      return await http.put(`category/${body.id}`, body)
+      return await http.put(`categoryBlog`, body)
     } catch (error) {
       console.error('Error fetching data:', error)
       throw error
@@ -34,4 +34,4 @@ const CategoryAPI = {
   }
 }
 
-export default CategoryAPI
+export default CategoryBlogAPI

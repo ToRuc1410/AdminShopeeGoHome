@@ -54,7 +54,6 @@ const OrderDetailAPI = {
       //   position: 'top-center',
       //   autoClose: 3000
       // })
-      console.log(error.response.data.message)
       throw error
     }
   },

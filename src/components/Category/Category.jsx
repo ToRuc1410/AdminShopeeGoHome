@@ -51,7 +51,6 @@ export default function Category() {
   }
   const handleCreate = async () => {
     const resCreateCategoryMutation = await createCategoryMutation.mutateAsync({ name: name })
-    console.log(resCreateCategoryMutation)
     toast.success(resCreateCategoryMutation?.data.message, {
       position: 'top-center',
       autoClose: 1000
@@ -94,44 +93,44 @@ export default function Category() {
   }
   return (
     <div className='px-2'>
-      {resCategoryData && resCategoryData.length > 0 ? (
-        <div>
-          <div className='flex justify-between'>
-            <div className='mt-3'>
-              <h2 className='text-left pt-4 font-sans text-gray-600'>Quản Lý Danh Mục</h2>
-              <div className='h-[2px] w-10px bg-white'></div>
-            </div>
-            <>
-              <Button type='default' onClick={showModal} className='bg-blue-300 h-10'>
-                Tạo Danh Mục
-              </Button>
-              <Modal title='Tạo Danh Mục' open={openCreate} footer={null} onCancel={handleCancel}>
-                <Form onFinish={handleCreate}>
-                  <Form.Item
-                    name='name'
-                    rules={[
-                      {
-                        required: true,
-                        message: 'Nhập Tên Danh Mục là bắt buộc'
-                      }
-                    ]}
-                  >
-                    <InputComponent
-                      placeholder='Nhập Tên Danh Mục'
-                      name='nameCategory'
-                      onChange={handleInputChange}
-                      value={name}
-                    />
-                  </Form.Item>
-                  <Form.Item>
-                    <Button className='bg-blue-400 float-right' type='primary' htmlType='submit'>
-                      Lưu
-                    </Button>
-                  </Form.Item>
-                </Form>
-              </Modal>
-            </>
+      <div>
+        <div className='flex justify-between'>
+          <div className='mt-3'>
+            <h2 className='text-left pt-4 font-sans text-gray-600'>Quản Lý Danh Mục</h2>
+            <div className='h-[2px] w-10px bg-white'></div>
           </div>
+          <>
+            <Button type='default' onClick={showModal} className='bg-blue-300 h-10'>
+              Tạo Danh Mục
+            </Button>
+            <Modal title='Tạo Danh Mục' open={openCreate} footer={null} onCancel={handleCancel}>
+              <Form onFinish={handleCreate}>
+                <Form.Item
+                  name='name'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Nhập Tên Danh Mục là bắt buộc'
+                    }
+                  ]}
+                >
+                  <InputComponent
+                    placeholder='Nhập Tên Danh Mục'
+                    name='nameCategory'
+                    onChange={handleInputChange}
+                    value={name}
+                  />
+                </Form.Item>
+                <Form.Item>
+                  <Button className='bg-blue-400 float-right' type='primary' htmlType='submit'>
+                    Lưu
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Modal>
+          </>
+        </div>
+        {resCategoryData && resCategoryData.length > 0 ? (
           <div className='relative overflow-x-auto shadow-md sm:rounded-lg m-2'>
             <table className='w-full text-sm text-left text-gray-500 dark:text-gray-400'>
               <thead className='text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400'>
@@ -206,10 +205,10 @@ export default function Category() {
               </tbody>
             </table>
           </div>
-        </div>
-      ) : (
-        <div className=''>Danh sách rỗng...</div>
-      )}
+        ) : (
+          <div className=''>Danh sách rỗng...</div>
+        )}
+      </div>
     </div>
   )
 }
